@@ -4,10 +4,11 @@ namespace App\Enums;
 
 enum Category: string
 {
-	case Produce = 'produce';
-	case Dairy = 'dairy';
 	case Bakery = 'bakery';
-	case Meat = 'meat';
+	case Cupboard = 'cupboard';
+	case Dairy = 'dairy';
 	case Frozen = 'frozen';
+	case Meat = 'meat';
+	case Produce = 'produce';
 	case Other = 'other';
 }
