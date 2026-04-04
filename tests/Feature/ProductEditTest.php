@@ -30,7 +30,7 @@ test('can edit product', function () {
 	$this->assertDatabaseHas('products', [
 		'id' => $product->id,
 		'name' => 'New Name',
-		'size' => 200.00,
+		'size' => 200,
 	]);
 });
 

@@ -37,7 +37,7 @@ class Product extends Model
 	 */
 	protected function casts(): array {
 		return [
-			'size' => 'decimal:2',
+			'size' => 'integer',
 			'size_type' => SizeType::class,
 			'category' => Category::class,
 		];

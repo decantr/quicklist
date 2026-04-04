@@ -37,8 +37,6 @@ new class extends Component {
 		<flux:input
 			wire:model="form.size"
 			type="number"
-			inputmode="decimal"
-			step="0.01"
 			:label="__('Size')"
 			placeholder="150"
 		/>

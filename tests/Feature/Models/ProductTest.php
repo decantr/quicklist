@@ -14,7 +14,7 @@ test('a product can be created', function () {
 	]);
 
 	expect($product->name)->toBe('Milk')
-		->and($product->size)->toBe('1.50') // Decimal cast as string in PHP if not cast to float
+		->and($product->size)->toBe(1)
 		->and($product->size_type)->toBe(SizeType::Millilitres);
 });
 
@@ -26,6 +26,6 @@ test('a product can be created with grams', function () {
 	]);
 
 	expect($product->name)->toBe('Eggs')
-		->and($product->size)->toBe('12.00')
+		->and($product->size)->toBe(12)
 		->and($product->size_type)->toBe(SizeType::Grams);
 });

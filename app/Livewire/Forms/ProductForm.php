@@ -14,7 +14,7 @@ class ProductForm extends Form
 	#[Validate]
 	public string $name = '';
 
-	#[Validate(['required', 'numeric', 'min:0'])]
+	#[Validate(['required', 'integer', 'min:0'])]
 	public string $size = '';
 
 	#[Validate(['required', 'string'])]

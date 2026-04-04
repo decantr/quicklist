@@ -24,7 +24,7 @@ test('can create product', function () {
 
 	$this->assertDatabaseHas('products', [
 		'name' => 'Apple',
-		'size' => 150.00,
+		'size' => 150,
 		'size_type' => SizeType::Grams->value,
 		'category' => Category::Produce->value,
 	]);
@@ -46,7 +46,7 @@ test('can create product and stay on modal', function () {
 
 	$this->assertDatabaseHas('products', [
 		'name' => 'Apple',
-		'size' => 150.00,
+		'size' => 150,
 		'size_type' => SizeType::Grams->value,
 		'category' => Category::Produce->value,
 	]);
