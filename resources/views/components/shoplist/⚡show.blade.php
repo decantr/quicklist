@@ -20,6 +20,7 @@ new #[Title('Shopping List Details')] class extends Component {
 	#[Computed]
 	public function products() {
 		return $this->shoplist->products()
+			->orderBy('category', 'asc')
 			->orderBy('name', 'asc')
 			->get();
 	}

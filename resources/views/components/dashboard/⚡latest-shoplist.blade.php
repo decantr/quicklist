@@ -18,7 +18,7 @@ new class extends Component {
 		return auth()->user()
 			->shoplists()
 			->with(['products' => function ($query) {
-				$query->orderBy('name', 'asc');
+				$query->orderBy('category', 'asc')->orderBy('name', 'asc');
 			}])
 			->orderBy('date', 'desc')
 			->first();
