@@ -165,10 +165,10 @@ This project has domain-specific skills available. You MUST activate the relevan
 
 === pint/core rules ===
 
-# Laravel Pint Code Formatter
+# Formatting
 
-- If you have modified any PHP files, you must run `vendor/bin/pint --dirty --format agent` before finalizing changes to ensure your code matches the project's expected style.
-- Do not run `vendor/bin/pint --test --format agent`, simply run `vendor/bin/pint --format agent` to fix any formatting issues.
+- If you have modified any files, you must run `make fmt` before finalizing changes to ensure your code matches the project's expected style.
+- Do not run `vendor/bin/pint --test --format agent`, simply run `make fmt` to fix any formatting issues.
 
 === pest/core rules ===
 

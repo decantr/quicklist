@@ -17,39 +17,36 @@ use Laravel\Fortify\TwoFactorAuthenticatable;
 #[Hidden(['password', 'two_factor_secret', 'two_factor_recovery_codes', 'remember_token'])]
 class User extends Authenticatable
 {
-    /** @use HasFactory<UserFactory> */
-    use HasFactory;
+	/** @use HasFactory<UserFactory> */
+	use HasFactory;
 
-    use Notifiable;
-    use TwoFactorAuthenticatable;
+	use Notifiable;
+	use TwoFactorAuthenticatable;
 
-    /**
-     * Get the user's initials
-     */
-    public function initials(): string
-    {
-        return Str::of($this->name)
-            ->explode(' ')
-            ->take(2)
-            ->map(fn ($word) => Str::substr($word, 0, 1))
-            ->implode('');
-    }
+	/**
+	 * Get the user's initials
+	 */
+	public function initials(): string {
+		return Str::of($this->name)
+			->explode(' ')
+			->take(2)
+			->map(fn ($word) => Str::substr($word, 0, 1))
+			->implode('');
+	}
 
-    /**
-     * Get the attributes that should be cast.
-     *
-     * @return array<string, string>
-     */
-    protected function casts(): array
-    {
-        return [
-            'email_verified_at' => 'datetime',
-            'password' => 'hashed',
-        ];
-    }
+	public function shoplists(): HasMany {
+		return $this->hasMany(Shoplist::class);
+	}
 
-    public function shoplists(): HasMany
-    {
-        return $this->hasMany(Shoplist::class);
-    }
+	/**
+	 * Get the attributes that should be cast.
+	 *
+	 * @return array<string, string>
+	 */
+	protected function casts(): array {
+		return [
+			'email_verified_at' => 'datetime',
+			'password' => 'hashed',
+		];
+	}
 }

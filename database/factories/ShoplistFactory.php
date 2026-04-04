@@ -11,16 +11,15 @@ use Illuminate\Database\Eloquent\Factories\Factory;
  */
 class ShoplistFactory extends Factory
 {
-    /**
-     * Define the model's default state.
-     *
-     * @return array<string, mixed>
-     */
-    public function definition(): array
-    {
-        return [
-            'user_id' => User::factory(),
-            'date' => $this->faker->date(),
-        ];
-    }
+	/**
+	 * Define the model's default state.
+	 *
+	 * @return array<string, mixed>
+	 */
+	public function definition(): array {
+		return [
+			'user_id' => User::factory(),
+			'date' => $this->faker->date(),
+		];
+	}
 }

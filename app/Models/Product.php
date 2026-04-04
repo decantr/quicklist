@@ -10,35 +10,33 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
 class Product extends Model
 {
-    /** @use HasFactory<ProductFactory> */
-    use HasFactory;
+	/** @use HasFactory<ProductFactory> */
+	use HasFactory;
 
-    /**
-     * @var list<string>
-     */
-    protected $fillable = [
-        'name',
-        'size',
-        'size_type',
-    ];
+	/**
+	 * @var list<string>
+	 */
+	protected $fillable = [
+		'name',
+		'size',
+		'size_type',
+	];
 
-    /**
-     * Get the attributes that should be cast.
-     *
-     * @return array<string, string>
-     */
-    protected function casts(): array
-    {
-        return [
-            'size' => 'decimal:2',
-            'size_type' => SizeType::class,
-        ];
-    }
+	public function shoplists(): BelongsToMany {
+		return $this->belongsToMany(Shoplist::class)
+			->withPivot('quantity')
+			->withTimestamps();
+	}
 
-    public function shoplists(): BelongsToMany
-    {
-        return $this->belongsToMany(Shoplist::class)
-            ->withPivot('quantity')
-            ->withTimestamps();
-    }
+	/**
+	 * Get the attributes that should be cast.
+	 *
+	 * @return array<string, string>
+	 */
+	protected function casts(): array {
+		return [
+			'size' => 'decimal:2',
+			'size_type' => SizeType::class,
+		];
+	}
 }

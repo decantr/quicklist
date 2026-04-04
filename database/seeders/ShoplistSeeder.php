@@ -6,11 +6,8 @@ use Illuminate\Database\Seeder;
 
 class ShoplistSeeder extends Seeder
 {
-    /**
-     * Run the database seeds.
-     */
-    public function run(): void
-    {
-        //
-    }
+	/**
+	 * Run the database seeds.
+	 */
+	public function run(): void {}
 }

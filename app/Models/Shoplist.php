@@ -10,30 +10,27 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
 class Shoplist extends Model
 {
-    /** @use HasFactory<ShoplistFactory> */
-    use HasFactory;
+	/** @use HasFactory<ShoplistFactory> */
+	use HasFactory;
 
-    protected $fillable = [
-        'user_id',
-        'date',
-    ];
+	protected $fillable = [
+		'user_id',
+		'date',
+	];
 
-    protected function casts(): array
-    {
-        return [
-            'date' => 'date',
-        ];
-    }
+	public function user(): BelongsTo {
+		return $this->belongsTo(User::class);
+	}
 
-    public function user(): BelongsTo
-    {
-        return $this->belongsTo(User::class);
-    }
+	public function products(): BelongsToMany {
+		return $this->belongsToMany(Product::class)
+			->withPivot('quantity')
+			->withTimestamps();
+	}
 
-    public function products(): BelongsToMany
-    {
-        return $this->belongsToMany(Product::class)
-            ->withPivot('quantity')
-            ->withTimestamps();
-    }
+	protected function casts(): array {
+		return [
+			'date' => 'date',
+		];
+	}
 }
