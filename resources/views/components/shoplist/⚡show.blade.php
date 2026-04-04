@@ -141,13 +141,27 @@ new #[Title('Shopping List Details')] class extends Component {
 	</flux:card>
 
 	@if ($this->products->isNotEmpty())
-		<flux:card>
-			<flux:textarea
-				label="{{ __('Text Output') }}"
-				description="{{ __('Copy this list to share it with others.') }}"
-				rows="auto"
-				readonly
-			>{{ $this->textOutput }}</flux:textarea>
+		<flux:card class="relative group">
+			<flux:field>
+				<div class="flex items-center justify-between">
+					<flux:label>{{ __('Text Output') }}</flux:label>
+
+					<flux:button
+						x-on:click="window.navigator.clipboard.writeText($el.closest('.group').querySelector('textarea').value); Flux.toast('{{ __('Copied to clipboard') }}')"
+						icon="clipboard"
+						size="sm"
+						variant="ghost"
+						inset="top bottom"
+					>{{ __('Copy') }}</flux:button>
+				</div>
+
+				<flux:description>{{ __('Copy this list to share it with others.') }}</flux:description>
+
+				<flux:textarea
+					rows="auto"
+					readonly
+				>{{ $this->textOutput }}</flux:textarea>
+			</flux:field>
 		</flux:card>
 	@endif
 </div>
