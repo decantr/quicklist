@@ -34,3 +34,14 @@ test('products page displays empty message when no products exist', function () 
 		->test('product.index')
 		->assertSee('No products found.');
 });
+
+test('products can be edited by clicking name', function () {
+	$user = User::factory()->create();
+	$product = Product::factory()->create(['name' => 'Milk']);
+
+	Livewire::actingAs($user)
+		->test('product.index')
+		->assertSet('editingProduct', null)
+		->call('edit', $product->id)
+		->assertSet('editingProduct.id', $product->id);
+});

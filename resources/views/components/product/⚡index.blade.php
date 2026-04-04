@@ -124,13 +124,12 @@ new class extends Component {
 				@forelse ($this->products as $product)
 					<flux:table.row :key="$product->id">
 						<flux:table.cell>
-							<flux:button
+							<flux:link
 								wire:click="edit({{ $product->id }})"
-								variant="ghost"
-								class="-ml-3 !font-bold"
+								class="cursor-pointer font-bold"
 							>
 								{{ $product->name }}
-							</flux:button>
+							</flux:link>
 						</flux:table.cell>
 						<flux:table.cell>
 							<flux:badge size="sm" inset="top bottom" color="zinc">
