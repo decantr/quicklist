@@ -30,9 +30,13 @@ new #[Title('Shopping List Details')] class extends Component {
 	}
 
 	#[Computed]
+	public function groupedProducts() {
+		return $this->products->groupBy(fn ($product) => $product->category->name);
+	}
+
+	#[Computed]
 	public function textOutput(): string {
-		return $this->products
-			->groupBy('category')
+		return $this->groupedProducts
 			->map(function ($products) {
 				return $products->map(fn ($product) => "{$product->pivot->quantity}x {$product->name} ({$product->size} {$product->size_type->value})")
 					->implode("\n");
@@ -146,27 +150,26 @@ new #[Title('Shopping List Details')] class extends Component {
 
 	@if ($this->products->isNotEmpty())
 		<flux:card class="relative group">
-			<flux:field>
-				<div class="flex items-center justify-between">
-					<flux:label>{{ __('Text Output') }}</flux:label>
+			<div class="flex items-center justify-between mb-4">
+				<flux:heading size="lg">{{ __('Formatted List') }}</flux:heading>
 
-					<flux:button
-						x-on:click="window.navigator.clipboard.writeText($el.closest('.group').querySelector('textarea').value); Flux.toast('{{ __('Copied to clipboard') }}')"
-						icon="clipboard"
-						size="sm"
-						variant="ghost"
-						inset="top bottom"
-					>{{ __('Copy') }}</flux:button>
-				</div>
+				<flux:button
+					x-on:click="window.navigator.clipboard.writeText($el.closest('.group').querySelector('.formatted-output').innerText.trim()); Flux.toast('{{ __('Copied to clipboard') }}')"
+					icon="clipboard"
+					size="sm"
+					inset="top bottom"
+				>{{ __('Copy') }}</flux:button>
+			</div>
 
-				<flux:description>{{ __('Copy this list to share it with others.') }}</flux:description>
-
-				<flux:textarea
-					rows="auto"
-					readonly
-					class="font-mono"
-				>{{ $this->textOutput }}</flux:textarea>
-			</flux:field>
+			<div class="formatted-output font-mono text-sm bg-zinc-50 dark:bg-zinc-900 p-4 rounded-lg border border-zinc-200 dark:border-zinc-700 space-y-4">
+				@foreach ($this->groupedProducts as $category => $products)
+					<div class="space-y-1">
+						@foreach ($products as $product)
+							<div>{{ $product->pivot->quantity }}x {{ $product->name }} ({{ $product->size }} {{ $product->size_type->value }})</div>
+						@endforeach
+					</div>
+				@endforeach
+			</div>
 		</flux:card>
 	@endif
 </div>

@@ -110,7 +110,7 @@ test('shopping list show page contains formatted text output separated by catego
 		->test('shoplist.show', ['shoplist' => $shoplist])
 		->assertSee('3x Milk (500 ml)')
 		->assertSee('1x Bread (1 g)')
-		->assertSee('Text Output')
+		->assertSee('Formatted List')
 		->assertSee('Copy');
 
 	$component = Livewire::actingAs($user)
