@@ -9,6 +9,8 @@ use Livewire\Component;
 new class extends Component {
 	public ?Product $editingProduct = null;
 
+	public ?Product $productToDelete = null;
+
 	#[On('product-created')]
 	#[On('product-updated')]
 	public function refresh(): void {
@@ -19,6 +21,28 @@ new class extends Component {
 		$this->editingProduct = $product;
 
 		$this->dispatch('modal-show', name: 'edit-product');
+	}
+
+	public function confirmDelete(Product $product): void {
+		$this->productToDelete = $product;
+
+		$this->dispatch('modal-show', name: 'confirm-product-deletion');
+	}
+
+	public function cancelDelete(): void {
+		$this->productToDelete = null;
+	}
+
+	public function delete(): void {
+		$this->productToDelete->delete();
+
+		$this->productToDelete = null;
+
+		$this->dispatch('modal-close', name: 'confirm-product-deletion');
+
+		$this->refresh();
+
+		Flux::toast(__('Product deleted successfully.'));
 	}
 
 	#[Computed]
@@ -63,6 +87,29 @@ new class extends Component {
 		</div>
 	</flux:modal>
 
+	<flux:modal name="confirm-product-deletion" class="min-w-[22rem]">
+		<form wire:submit="delete" class="space-y-6">
+			<div>
+				<flux:heading size="lg">{{ __('Are you sure you want to delete this product?') }}</flux:heading>
+				<flux:subheading>
+					{{ __('Once this product is deleted, it will be permanently removed.') }}
+				</flux:subheading>
+			</div>
+
+			<div class="flex justify-end gap-3">
+				<flux:modal.close>
+					<flux:button variant="ghost" wire:click="cancelDelete">
+						{{ __('Cancel') }}
+					</flux:button>
+				</flux:modal.close>
+
+				<flux:button type="submit" variant="danger">
+					{{ __('Delete Product') }}
+				</flux:button>
+			</div>
+		</form>
+	</flux:modal>
+
 	<flux:card class="p-0 overflow-hidden">
 		<flux:table>
 			<flux:table.columns>
@@ -103,6 +150,10 @@ new class extends Component {
 								<flux:menu>
 									<flux:menu.item wire:click="edit({{ $product->id }})" icon="pencil-square">
 										{{ __('Edit') }}
+									</flux:menu.item>
+
+									<flux:menu.item wire:click="confirmDelete({{ $product->id }})" icon="trash" variant="danger">
+										{{ __('Delete') }}
 									</flux:menu.item>
 								</flux:menu>
 							</flux:dropdown>
