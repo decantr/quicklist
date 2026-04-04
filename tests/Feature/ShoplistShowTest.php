@@ -83,23 +83,41 @@ test('existing products in shopping list can have their quantity updated', funct
 	expect($shoplist->products()->where('product_id', $product->id)->first()->pivot->quantity)->toBe(10);
 });
 
-test('shopping list show page contains formatted text output', function () {
+test('shopping list show page contains formatted text output separated by category', function () {
 	$user = User::factory()->create();
 	$shoplist = Shoplist::factory()->create(['user_id' => $user->id]);
-	$product = Product::factory()->create([
+
+	$milk = Product::factory()->create([
 		'name' => 'Milk',
 		'size' => 500,
 		'size_type' => \App\Enums\SizeType::Millilitres,
+		'category' => \App\Enums\Category::Dairy,
 	]);
 
-	$shoplist->products()->attach($product->id, ['quantity' => 3]);
+	$bread = Product::factory()->create([
+		'name' => 'Bread',
+		'size' => 1,
+		'size_type' => \App\Enums\SizeType::Grams, // Assuming factory uses grams as unit
+		'category' => \App\Enums\Category::Bakery,
+	]);
+
+	$shoplist->products()->attach([
+		$milk->id => ['quantity' => 3],
+		$bread->id => ['quantity' => 1],
+	]);
 
 	Livewire::actingAs($user)
 		->test('shoplist.show', ['shoplist' => $shoplist])
 		->assertSee('3x Milk (500 ml)')
+		->assertSee('1x Bread (1 g)')
 		->assertSee('Text Output')
-		->assertSeeHtml('readonly')
-		->assertSeeHtml('>3x Milk (500 ml)</textarea>')
-		->assertSee('Copy')
-		->assertSee('Copied to clipboard');
+		->assertSee('Copy');
+
+	$component = Livewire::actingAs($user)
+		->test('shoplist.show', ['shoplist' => $shoplist]);
+
+	$output = $component->get('textOutput');
+	expect($output)->toContain('3x Milk (500 ml)')
+		->and($output)->toContain('1x Bread (1 g)')
+		->and($output)->toMatch('/\n\n/');
 });

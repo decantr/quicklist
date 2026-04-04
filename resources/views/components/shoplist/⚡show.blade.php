@@ -32,8 +32,12 @@ new #[Title('Shopping List Details')] class extends Component {
 	#[Computed]
 	public function textOutput(): string {
 		return $this->products
-			->map(fn ($product) => "{$product->pivot->quantity}x {$product->name} ({$product->size} {$product->size_type->value})")
-			->implode("\n");
+			->groupBy('category')
+			->map(function ($products) {
+				return $products->map(fn ($product) => "{$product->pivot->quantity}x {$product->name} ({$product->size} {$product->size_type->value})")
+					->implode("\n");
+			})
+			->implode("\n\n");
 	}
 
 	public function addProduct(): void {
@@ -160,6 +164,7 @@ new #[Title('Shopping List Details')] class extends Component {
 				<flux:textarea
 					rows="auto"
 					readonly
+					class="font-mono"
 				>{{ $this->textOutput }}</flux:textarea>
 			</flux:field>
 		</flux:card>
