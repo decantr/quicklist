@@ -12,9 +12,9 @@ test('can create product', function () {
 
 	Livewire::actingAs($user)
 		->test('product.create')
-		->set('name', 'Apple')
-		->set('size', 150)
-		->set('size_type', SizeType::Grams->value)
+		->set('form.name', 'Apple')
+		->set('form.size', 150)
+		->set('form.size_type', SizeType::Grams->value)
 		->call('save')
 		->assertHasNoErrors()
 		->assertDispatched('product-created');
@@ -31,9 +31,9 @@ test('validation works for product creation', function () {
 
 	Livewire::actingAs($user)
 		->test('product.create')
-		->set('name', '')
-		->set('size', '')
-		->set('size_type', '')
+		->set('form.name', '')
+		->set('form.size', '')
+		->set('form.size_type', '')
 		->call('save')
-		->assertHasErrors(['name' => 'required', 'size' => 'required', 'size_type' => 'required']);
+		->assertHasErrors(['form.name' => 'required', 'form.size' => 'required', 'form.size_type' => 'required']);
 });
