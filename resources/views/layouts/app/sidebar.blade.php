@@ -18,6 +18,9 @@
                     <flux:sidebar.item icon="shopping-bag" :href="route('shoplists.index')" :current="request()->routeIs('shoplists.index')" wire:navigate>
                         {{ __('Shop Lists') }}
                     </flux:sidebar.item>
+                    <flux:sidebar.item icon="archive-box" :href="route('products.index')" :current="request()->routeIs('products.index')" wire:navigate>
+                        {{ __('Products') }}
+                    </flux:sidebar.item>
                 </flux:sidebar.group>
             </flux:sidebar.nav>
 

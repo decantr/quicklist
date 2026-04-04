@@ -13,6 +13,12 @@
                 <flux:navbar.item icon="layout-grid" :href="route('dashboard')" :current="request()->routeIs('dashboard')" wire:navigate>
                     {{ __('Dashboard') }}
                 </flux:navbar.item>
+                <flux:navbar.item icon="shopping-bag" :href="route('shoplists.index')" :current="request()->routeIs('shoplists.index')" wire:navigate>
+                    {{ __('Shop Lists') }}
+                </flux:navbar.item>
+                <flux:navbar.item icon="package-2" :href="route('products.index')" :current="request()->routeIs('products.index')" wire:navigate>
+                    {{ __('Products') }}
+                </flux:navbar.item>
             </flux:navbar>
 
             <flux:spacer />
@@ -55,6 +61,12 @@
                 <flux:sidebar.group :heading="__('Platform')">
                     <flux:sidebar.item icon="layout-grid" :href="route('dashboard')" :current="request()->routeIs('dashboard')" wire:navigate>
                         {{ __('Dashboard')  }}
+                    </flux:sidebar.item>
+                    <flux:sidebar.item icon="shopping-bag" :href="route('shoplists.index')" :current="request()->routeIs('shoplists.index')" wire:navigate>
+                        {{ __('Shop Lists') }}
+                    </flux:sidebar.item>
+                    <flux:sidebar.item icon="archive-box" :href="route('products.index')" :current="request()->routeIs('products.index')" wire:navigate>
+                        {{ __('Products') }}
                     </flux:sidebar.item>
                 </flux:sidebar.group>
             </flux:sidebar.nav>
