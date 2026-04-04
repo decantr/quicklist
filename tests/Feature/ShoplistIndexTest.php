@@ -12,7 +12,8 @@ test('shop lists page is accessible', function () {
 
 	$this->actingAs($user)
 		->get(route('shoplists.index'))
-		->assertOk();
+		->assertOk()
+		->assertSee('My Shop Lists');
 });
 
 test('shop lists page displays user shop lists', function () {
