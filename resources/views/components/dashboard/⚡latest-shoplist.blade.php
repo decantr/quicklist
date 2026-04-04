@@ -38,12 +38,7 @@ new class extends Component {
 
 	#[Computed]
 	public function textOutput(): string {
-		return $this->groupedProducts
-			->map(function ($products) {
-				return $products->map(fn ($product) => "{$product->pivot->quantity}x {$product->name} ({$product->size} {$product->size_type->value})")
-					->implode("\n");
-			})
-			->implode("\n\n");
+		return $this->latestShoplist?->formatted_list ?? '';
 	}
 
 	public function addProduct(): void {
@@ -160,12 +155,7 @@ new class extends Component {
 				</div>
 
 				<div class="formatted-output hidden">
-					@foreach ($this->groupedProducts as $category => $products)
-						@foreach ($products as $product)
-							{{ $product->pivot->quantity }}x {{ $product->name }} ({{ $product->size }} {{ $product->size_type->value }})
-						@endforeach
-
-					@endforeach
+					{{ $this->textOutput }}
 				</div>
 			@else
 				<div class="flex flex-1 items-center justify-center text-zinc-500 italic">

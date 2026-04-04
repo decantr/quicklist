@@ -36,12 +36,7 @@ new #[Title('Shopping List Details')] class extends Component {
 
 	#[Computed]
 	public function textOutput(): string {
-		return $this->groupedProducts
-			->map(function ($products) {
-				return $products->map(fn ($product) => "{$product->pivot->quantity}x {$product->name} ({$product->size} {$product->size_type->value})")
-					->implode("\n");
-			})
-			->implode("\n\n");
+		return $this->shoplist->formatted_list;
 	}
 
 	public function addProduct(): void {
@@ -161,14 +156,8 @@ new #[Title('Shopping List Details')] class extends Component {
 				>{{ __('Copy') }}</flux:button>
 			</div>
 
-			<div class="formatted-output font-mono text-sm bg-zinc-50 dark:bg-zinc-900 p-4 rounded-lg border border-zinc-200 dark:border-zinc-700 space-y-4">
-				@foreach ($this->groupedProducts as $category => $products)
-					<div class="space-y-1">
-						@foreach ($products as $product)
-							<div>{{ $product->pivot->quantity }}x {{ $product->name }} ({{ $product->size }} {{ $product->size_type->value }})</div>
-						@endforeach
-					</div>
-				@endforeach
+			<div class="formatted-output font-mono text-sm bg-zinc-50 dark:bg-zinc-900 p-4 rounded-lg border border-zinc-200 dark:border-zinc-700 space-y-4 whitespace-pre">
+				{{ $this->textOutput }}
 			</div>
 		</flux:card>
 	@endif
