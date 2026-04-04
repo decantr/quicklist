@@ -10,6 +10,9 @@ new class extends Component {
 	public ?int $productId = null;
 	public int $quantity = 1;
 
+	public ?int $editingProductId = null;
+	public int $editingQuantity = 1;
+
 	#[Computed]
 	public function latestShoplist() {
 		return auth()->user()
@@ -65,6 +68,39 @@ new class extends Component {
 
 		Flux::modal('add-product-dashboard')->close();
 		Flux::toast(__('Product added to list.'));
+	}
+
+	public function editProduct(int $productId, int $quantity): void {
+		$this->editingProductId = $productId;
+		$this->editingQuantity = $quantity;
+
+		Flux::modal('edit-product-dashboard')->show();
+	}
+
+	public function updateProduct(): void {
+		if (! $this->latestShoplist) {
+			return;
+		}
+
+		$this->validate([
+			'editingProductId' => 'required|exists:products,id',
+			'editingQuantity' => 'required|integer|min:1',
+		]);
+
+		$this->latestShoplist->products()->updateExistingPivot($this->editingProductId, [
+			'quantity' => $this->editingQuantity,
+		]);
+
+		$this->editingProductId = null;
+		$this->editingQuantity = 1;
+
+		unset($this->latestShoplist);
+		unset($this->products);
+		unset($this->groupedProducts);
+		unset($this->textOutput);
+
+		Flux::modal('edit-product-dashboard')->close();
+		Flux::toast(__('Product quantity updated.'));
 	}
 };
 ?>
@@ -123,6 +159,27 @@ new class extends Component {
 				</form>
 			</flux:modal>
 
+			<flux:modal name="edit-product-dashboard" class="md:w-96">
+				<form wire:submit="updateProduct" class="flex flex-col gap-6">
+					<div>
+						<flux:heading size="lg">{{ __('Edit Quantity') }}</flux:heading>
+						<flux:text>{{ __('Update the quantity for this product in your shopping list.') }}</flux:text>
+					</div>
+
+					<flux:input type="number" wire:model="editingQuantity" label="{{ __('Quantity') }}" min="1" />
+
+					<div class="flex gap-2">
+						<flux:spacer />
+
+						<flux:modal.close>
+							<flux:button variant="ghost">{{ __('Cancel') }}</flux:button>
+						</flux:modal.close>
+
+						<flux:button type="submit" variant="primary">{{ __('Update quantity') }}</flux:button>
+					</div>
+				</form>
+			</flux:modal>
+
 			@if ($this->products->isNotEmpty())
 				<div class="flex-1 overflow-y-auto">
 					<flux:table>
@@ -130,6 +187,7 @@ new class extends Component {
 							<flux:table.column>{{ __('Product') }}</flux:table.column>
 							<flux:table.column>{{ __('Category') }}</flux:table.column>
 							<flux:table.column>{{ __('Quantity') }}</flux:table.column>
+							<flux:table.column />
 						</flux:table.columns>
 
 						<flux:table.rows>
@@ -147,6 +205,16 @@ new class extends Component {
 										<flux:badge size="sm" inset="top bottom" color="blue">
 											{{ $product->pivot->quantity }}
 										</flux:badge>
+									</flux:table.cell>
+
+									<flux:table.cell>
+										<flux:dropdown align="end">
+											<flux:button variant="ghost" size="sm" icon="ellipsis-horizontal" inset="top bottom" />
+
+											<flux:menu>
+												<flux:menu.item wire:click="editProduct({{ $product->id }}, {{ $product->pivot->quantity }})" icon="pencil-square">{{ __('Edit') }}</flux:menu.item>
+											</flux:menu>
+										</flux:dropdown>
 									</flux:table.cell>
 								</flux:table.row>
 							@endforeach

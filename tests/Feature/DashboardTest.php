@@ -90,3 +90,22 @@ test('products can be added to the latest shopping list from the dashboard', fun
 
 	expect($shoplist->products()->where('product_id', $product->id)->first()->pivot->quantity)->toBe(3);
 });
+
+test('products in the latest shopping list can be edited from the dashboard', function () {
+	$user = User::factory()->create();
+	$shoplist = Shoplist::factory()->create(['user_id' => $user->id]);
+	$product = Product::factory()->create(['name' => 'Apple']);
+	$shoplist->products()->attach($product->id, ['quantity' => 2]);
+
+	Livewire::actingAs($user)
+		->test('dashboard.latest-shoplist')
+		->assertSee('Apple')
+		->assertSee('2')
+		->call('editProduct', $product->id, 2)
+		->set('editingQuantity', 10)
+		->call('updateProduct')
+		->assertHasNoErrors()
+		->assertSee('10');
+
+	expect($shoplist->products()->where('product_id', $product->id)->first()->pivot->quantity)->toBe(10);
+});
