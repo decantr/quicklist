@@ -64,3 +64,27 @@ test('validation works for product creation', function () {
 		->call('save')
 		->assertHasErrors(['form.name' => 'required', 'form.size' => 'required', 'form.size_type' => 'required', 'form.category' => 'required']);
 });
+
+test('duplicate product creation is prevented', function () {
+	$user = User::factory()->create();
+
+	// Create first product
+	Livewire::actingAs($user)
+		->test('product.create')
+		->set('form.name', 'Apple')
+		->set('form.size', 150)
+		->set('form.size_type', SizeType::Grams->value)
+		->set('form.category', Category::Produce->value)
+		->call('save')
+		->assertHasNoErrors();
+
+	// Try to create the same product again with a different category
+	Livewire::actingAs($user)
+		->test('product.create')
+		->set('form.name', 'Apple')
+		->set('form.size', 150)
+		->set('form.size_type', SizeType::Grams->value)
+		->set('form.category', Category::Dairy->value)
+		->call('save')
+		->assertHasErrors(['form.name']);
+});
