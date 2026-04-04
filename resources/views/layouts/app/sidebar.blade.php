@@ -95,7 +95,7 @@
         </flux:header>
 
         {{ $slot }}
-
+        <flux:toast />
         @fluxScripts
     </body>
 </html>
