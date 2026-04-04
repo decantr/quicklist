@@ -100,5 +100,6 @@ test('shopping list show page contains formatted text output', function () {
 		->assertSee('Text Output')
 		->assertSeeHtml('readonly')
 		->assertSeeHtml('>3x Milk (500 ml)</textarea>')
+		->assertSee('Copy')
 		->assertSee('Copied to clipboard');
 });
