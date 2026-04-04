@@ -15,12 +15,40 @@ new class extends Component {
 			->orderBy('date', 'desc')
 			->get();
 	}
+
+	public function create(): void {
+		$user = auth()->user();
+
+		$previousShoplist = $user->shoplists()
+			->orderBy('date', 'desc')
+			->first();
+
+		$shoplist = $user->shoplists()->create([
+			'date' => now()->format('Y-m-d'),
+		]);
+
+		if ($previousShoplist) {
+			$products = $previousShoplist->products->mapWithKeys(function ($product) {
+				return [$product->id => ['quantity' => $product->pivot->quantity]];
+			})->toArray();
+
+			$shoplist->products()->attach($products);
+		}
+
+		unset($this->shoplists);
+
+		Flux::toast(__('Shopping list created.'));
+	}
 };
 ?>
 
 <div class="flex h-full w-full flex-1 flex-col gap-4 rounded-xl">
 	<div class="flex items-center justify-between">
 		<flux:heading size="xl">{{ __('My Shop Lists') }}</flux:heading>
+
+		<flux:button wire:click="create" variant="primary" icon="plus">
+			{{ __('Create list') }}
+		</flux:button>
 	</div>
 
 	<flux:card class="p-0 overflow-hidden">
