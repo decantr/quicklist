@@ -3,9 +3,15 @@
 use App\Models\Product;
 use Illuminate\Support\Collection;
 use Livewire\Attributes\Computed;
+use Livewire\Attributes\On;
 use Livewire\Component;
 
 new class extends Component {
+	#[On('product-created')]
+	public function refresh(): void {
+		unset($this->products);
+	}
+
 	#[Computed]
 	public function products(): Collection {
 		return Product::query()
@@ -18,7 +24,22 @@ new class extends Component {
 <div class="flex h-full w-full flex-1 flex-col gap-4 rounded-xl">
 	<div class="flex items-center justify-between">
 		<flux:heading size="xl">{{ __('All Products') }}</flux:heading>
+
+		<flux:modal.trigger name="create-product">
+			<flux:button variant="primary" icon="plus">{{ __('Create product') }}</flux:button>
+		</flux:modal.trigger>
 	</div>
+
+	<flux:modal name="create-product" class="min-w-[22rem]">
+		<div class="space-y-6">
+			<div>
+				<flux:heading size="lg">{{ __('Create new product') }}</flux:heading>
+				<flux:subheading>{{ __('Add a new product to your inventory.') }}</flux:subheading>
+			</div>
+
+			<livewire:product.create />
+		</div>
+	</flux:modal>
 
 	<flux:card class="p-0 overflow-hidden">
 		<flux:table>
