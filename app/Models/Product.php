@@ -6,6 +6,7 @@ use App\Enums\SizeType;
 use Database\Factories\ProductFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
 class Product extends Model
 {
@@ -32,5 +33,12 @@ class Product extends Model
             'size' => 'decimal:2',
             'size_type' => SizeType::class,
         ];
+    }
+
+    public function shoplists(): BelongsToMany
+    {
+        return $this->belongsToMany(Shoplist::class)
+            ->withPivot('quantity')
+            ->withTimestamps();
     }
 }
