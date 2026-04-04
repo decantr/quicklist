@@ -105,3 +105,17 @@ test('shop lists page displays empty message when no shop lists exist', function
 		->test('shoplist.index')
 		->assertSee('No shop lists found.');
 });
+
+test('a shopping list can be deleted', function () {
+	$user = User::factory()->create();
+	$shoplist = Shoplist::factory()->create(['user_id' => $user->id]);
+
+	Livewire::actingAs($user)
+		->test('shoplist.index')
+		->call('delete', $shoplist->id)
+		->assertHasNoErrors();
+
+	$this->assertDatabaseMissing('shoplists', [
+		'id' => $shoplist->id,
+	]);
+});
