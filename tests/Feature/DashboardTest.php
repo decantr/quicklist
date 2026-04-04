@@ -61,7 +61,7 @@ test('dashboard shows message when latest shopping list is empty', function () {
 		->assertSee('No products in the latest shopping list.');
 });
 
-test('dashboard latest shoplist has copy button when products exist', function () {
+test('dashboard latest shoplist has copy button and add button when products exist', function () {
 	$user = User::factory()->create();
 	$shoplist = Shoplist::factory()->create(['user_id' => $user->id]);
 	$product = Product::factory()->create(['name' => 'Apple']);
@@ -70,5 +70,23 @@ test('dashboard latest shoplist has copy button when products exist', function (
 	Livewire::actingAs($user)
 		->test('dashboard.latest-shoplist')
 		->assertSee('Copy')
-		->assertSee('5x Apple');
+		->assertSee('Add Product')
+		->assertSee('Apple');
+});
+
+test('products can be added to the latest shopping list from the dashboard', function () {
+	$user = User::factory()->create();
+	$shoplist = Shoplist::factory()->create(['user_id' => $user->id]);
+	$product = Product::factory()->create(['name' => 'Banana']);
+
+	Livewire::actingAs($user)
+		->test('dashboard.latest-shoplist')
+		->set('productId', $product->id)
+		->set('quantity', 3)
+		->call('addProduct')
+		->assertHasNoErrors()
+		->assertSee('Banana')
+		->assertSee('3');
+
+	expect($shoplist->products()->where('product_id', $product->id)->first()->pivot->quantity)->toBe(3);
 });
