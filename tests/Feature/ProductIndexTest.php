@@ -45,3 +45,23 @@ test('products can be edited by clicking name', function () {
 		->call('edit', $product->id)
 		->assertSet('editingProduct.id', $product->id);
 });
+
+test('products can be filtered by category', function () {
+	$user = User::factory()->create();
+	$product1 = Product::factory()->create(['name' => 'Milk', 'category' => \App\Enums\Category::Dairy]);
+	$product2 = Product::factory()->create(['name' => 'Bread', 'category' => \App\Enums\Category::Bakery]);
+
+	Livewire::actingAs($user)
+		->test('product.index')
+		->assertSee('Milk')
+		->assertSee('Bread')
+		->set('category', \App\Enums\Category::Dairy->value)
+		->assertSee('Milk')
+		->assertDontSee('Bread')
+		->set('category', \App\Enums\Category::Bakery->value)
+		->assertDontSee('Milk')
+		->assertSee('Bread')
+		->set('category', '')
+		->assertSee('Milk')
+		->assertSee('Bread');
+});

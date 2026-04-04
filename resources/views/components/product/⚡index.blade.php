@@ -1,12 +1,17 @@
 <?php
 
+use App\Enums\Category;
 use App\Models\Product;
 use Illuminate\Support\Collection;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\On;
+use Livewire\Attributes\Url;
 use Livewire\Component;
 
 new class extends Component {
+	#[Url]
+	public string $category = '';
+
 	public ?Product $editingProduct = null;
 
 	public ?Product $productToDelete = null;
@@ -48,6 +53,7 @@ new class extends Component {
 	#[Computed]
 	public function products(): Collection {
 		return Product::query()
+			->when($this->category, fn ($query) => $query->where('category', $this->category))
 			->orderBy('name', 'asc')
 			->get();
 	}
@@ -58,9 +64,18 @@ new class extends Component {
 	<div class="flex items-center justify-between">
 		<flux:heading size="xl">{{ __('All Products') }}</flux:heading>
 
-		<flux:modal.trigger name="create-product">
-			<flux:button variant="primary" icon="plus">{{ __('Create product') }}</flux:button>
-		</flux:modal.trigger>
+		<div class="flex items-center gap-4">
+			<flux:select wire:model.live="category" class="min-w-48" placeholder="{{ __('All categories') }}">
+				<flux:select.option value="">{{ __('All categories') }}</flux:select.option>
+				@foreach (Category::cases() as $case)
+					<flux:select.option value="{{ $case->value }}">{{ $case->name }}</flux:select.option>
+				@endforeach
+			</flux:select>
+
+			<flux:modal.trigger name="create-product">
+				<flux:button variant="primary" icon="plus">{{ __('Create product') }}</flux:button>
+			</flux:modal.trigger>
+		</div>
 	</div>
 
 	<flux:modal name="create-product" class="min-w-[22rem]">
