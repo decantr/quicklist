@@ -84,6 +84,20 @@ test('a shopping list copies products from the previous list', function () {
 		->and($newList->products[1]->pivot->quantity)->toBe(1);
 });
 
+test('shopping list displays correct product count', function () {
+	$user = User::factory()->create();
+	$shoplist = Shoplist::factory()->create(['user_id' => $user->id]);
+	$products = Product::factory()->count(3)->create();
+
+	$shoplist->products()->attach(
+		$products->pluck('id')->mapWithKeys(fn ($id) => [$id => ['quantity' => 1]])->toArray()
+	);
+
+	Livewire::actingAs($user)
+		->test('shoplist.index')
+		->assertSee('3 products');
+});
+
 test('shop lists page displays empty message when no shop lists exist', function () {
 	$user = User::factory()->create();
 
