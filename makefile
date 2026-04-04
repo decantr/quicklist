@@ -15,7 +15,6 @@ test:
 	php artisan test --parallel
 
 test-full:
-	rm composer.lock package-lock.json
 	composer install
 	npm install
 	npm run build
@@ -31,7 +30,6 @@ setup:
 
 update:
 	git pull
-	rm composer.lock package-lock.json
 	composer install --no-dev --optimize-autoloader --classmap-authoritative
 	npm install --production
 	php artisan migrate --force
