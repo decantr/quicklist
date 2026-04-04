@@ -45,6 +45,7 @@ new class extends Component {
 		<flux:table>
 			<flux:table.columns>
 				<flux:table.column>{{ __('Name') }}</flux:table.column>
+				<flux:table.column>{{ __('Category') }}</flux:table.column>
 				<flux:table.column>{{ __('Size') }}</flux:table.column>
 				<flux:table.column>{{ __('Created At') }}</flux:table.column>
 			</flux:table.columns>
@@ -56,6 +57,11 @@ new class extends Component {
 							{{ $product->name }}
 						</flux:table.cell>
 						<flux:table.cell>
+							<flux:badge size="sm" inset="top bottom" color="zinc">
+								{{ $product->category->name }}
+							</flux:badge>
+						</flux:table.cell>
+						<flux:table.cell>
 							{{ $product->size }} {{ $product->size_type->value }}
 						</flux:table.cell>
 						<flux:table.cell class="text-zinc-500 dark:text-zinc-400">
@@ -64,7 +70,7 @@ new class extends Component {
 					</flux:table.row>
 				@empty
 					<flux:table.row>
-						<flux:table.cell colspan="3" class="text-center py-8 text-zinc-500">
+						<flux:table.cell colspan="4" class="text-center py-8 text-zinc-500">
 							{{ __('No products found.') }}
 						</flux:table.cell>
 					</flux:table.row>

@@ -1,5 +1,6 @@
 <?php
 
+use App\Enums\Category;
 use App\Enums\SizeType;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -15,6 +16,7 @@ test('can create product', function () {
 		->set('form.name', 'Apple')
 		->set('form.size', 150)
 		->set('form.size_type', SizeType::Grams->value)
+		->set('form.category', Category::Produce->value)
 		->call('save')
 		->assertHasNoErrors()
 		->assertDispatched('product-created')
@@ -24,6 +26,7 @@ test('can create product', function () {
 		'name' => 'Apple',
 		'size' => 150.00,
 		'size_type' => SizeType::Grams->value,
+		'category' => Category::Produce->value,
 	]);
 });
 
@@ -35,6 +38,7 @@ test('can create product and stay on modal', function () {
 		->set('form.name', 'Apple')
 		->set('form.size', 150)
 		->set('form.size_type', SizeType::Grams->value)
+		->set('form.category', Category::Produce->value)
 		->call('save', false)
 		->assertHasNoErrors()
 		->assertDispatched('product-created')
@@ -44,6 +48,7 @@ test('can create product and stay on modal', function () {
 		'name' => 'Apple',
 		'size' => 150.00,
 		'size_type' => SizeType::Grams->value,
+		'category' => Category::Produce->value,
 	]);
 });
 
@@ -55,6 +60,7 @@ test('validation works for product creation', function () {
 		->set('form.name', '')
 		->set('form.size', '')
 		->set('form.size_type', '')
+		->set('form.category', '')
 		->call('save')
-		->assertHasErrors(['form.name' => 'required', 'form.size' => 'required', 'form.size_type' => 'required']);
+		->assertHasErrors(['form.name' => 'required', 'form.size' => 'required', 'form.size_type' => 'required', 'form.category' => 'required']);
 });

@@ -1,5 +1,6 @@
 <?php
 
+use App\Enums\Category;
 use App\Enums\SizeType;
 use App\Livewire\Forms\ProductForm;
 use Livewire\Component;
@@ -46,6 +47,13 @@ new class extends Component {
 			@endforeach
 		</flux:select>
 	</div>
+
+	<flux:select wire:model="form.category" :label="__('Category')">
+		<flux:select.option value="">{{ __('Select category') }}</flux:select.option>
+		@foreach (Category::cases() as $case)
+			<flux:select.option :value="$case->value">{{ $case->name }}</flux:select.option>
+		@endforeach
+	</flux:select>
 
 	<div class="flex justify-end gap-3">
 		<flux:modal.close>

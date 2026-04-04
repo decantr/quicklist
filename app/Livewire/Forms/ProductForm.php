@@ -16,10 +16,13 @@ class ProductForm extends Form
 	#[Validate(['required', 'string'])]
 	public string $size_type = '';
 
+	#[Validate(['required', 'string'])]
+	public string $category = '';
+
 	public function store(): void {
 		$this->validate();
 
-		\App\Models\Product::create($this->only(['name', 'size', 'size_type']));
+		\App\Models\Product::create($this->only(['name', 'size', 'size_type', 'category']));
 
 		$this->reset();
 	}

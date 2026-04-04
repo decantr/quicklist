@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\Category;
 use App\Enums\SizeType;
 use Database\Factories\ProductFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -20,6 +21,7 @@ class Product extends Model
 		'name',
 		'size',
 		'size_type',
+		'category',
 	];
 
 	public function shoplists(): BelongsToMany {
@@ -37,6 +39,7 @@ class Product extends Model
 		return [
 			'size' => 'decimal:2',
 			'size_type' => SizeType::class,
+			'category' => Category::class,
 		];
 	}
 }
