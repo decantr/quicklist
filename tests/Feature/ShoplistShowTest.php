@@ -82,3 +82,22 @@ test('existing products in shopping list can have their quantity updated', funct
 	expect($shoplist->products()->count())->toBe(1);
 	expect($shoplist->products()->where('product_id', $product->id)->first()->pivot->quantity)->toBe(10);
 });
+
+test('shopping list show page contains formatted text output', function () {
+	$user = User::factory()->create();
+	$shoplist = Shoplist::factory()->create(['user_id' => $user->id]);
+	$product = Product::factory()->create([
+		'name' => 'Milk',
+		'size' => 500,
+		'size_type' => \App\Enums\SizeType::Millilitres,
+	]);
+
+	$shoplist->products()->attach($product->id, ['quantity' => 3]);
+
+	Livewire::actingAs($user)
+		->test('shoplist.show', ['shoplist' => $shoplist])
+		->assertSee('3x Milk (500 ml)')
+		->assertSee('Text Output')
+		->assertSeeHtml('readonly')
+		->assertSeeHtml('>3x Milk (500 ml)</textarea>');
+});

@@ -29,6 +29,13 @@ new #[Title('Shopping List Details')] class extends Component {
 		return Product::query()->orderBy('name')->get();
 	}
 
+	#[Computed]
+	public function textOutput(): string {
+		return $this->products
+			->map(fn ($product) => "{$product->pivot->quantity}x {$product->name} ({$product->size} {$product->size_type->value})")
+			->implode("\n");
+	}
+
 	public function addProduct(): void {
 		$this->validate([
 			'productId' => 'required|exists:products,id',
@@ -132,4 +139,15 @@ new #[Title('Shopping List Details')] class extends Component {
 			</flux:table.rows>
 		</flux:table>
 	</flux:card>
+
+	@if ($this->products->isNotEmpty())
+		<flux:card>
+			<flux:textarea
+				label="{{ __('Text Output') }}"
+				description="{{ __('Copy this list to share it with others.') }}"
+				rows="auto"
+				readonly
+			>{{ $this->textOutput }}</flux:textarea>
+		</flux:card>
+	@endif
 </div>
