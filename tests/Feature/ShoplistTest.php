@@ -2,13 +2,16 @@
 
 use App\Models\Product;
 use App\Models\Shoplist;
+use App\Models\User;
 use Carbon\CarbonInterface;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 
 uses(RefreshDatabase::class);
 
 test('a shoplist can have multiple products with different quantities', function () {
+    $user = User::factory()->create();
     $shoplist = Shoplist::create([
+        'user_id' => $user->id,
         'date' => now()->toDateString(),
     ]);
 
@@ -30,11 +33,28 @@ test('a shoplist can have multiple products with different quantities', function
 });
 
 test('shoplist date is correctly cast', function () {
+    $user = User::factory()->create();
     $date = '2026-05-15';
     $shoplist = Shoplist::create([
+        'user_id' => $user->id,
         'date' => $date,
     ]);
 
     expect($shoplist->date)->toBeInstanceOf(CarbonInterface::class);
     expect($shoplist->date->toDateString())->toBe($date);
+});
+
+test('a shoplist belongs to a user', function () {
+    $user = User::factory()->create();
+    $shoplist = Shoplist::factory()->create(['user_id' => $user->id]);
+
+    expect($shoplist->user)->toBeInstanceOf(User::class);
+    expect($shoplist->user->id)->toBe($user->id);
+});
+
+test('a user has many shoplists', function () {
+    $user = User::factory()->create();
+    Shoplist::factory()->count(3)->create(['user_id' => $user->id]);
+
+    expect($user->shoplists)->toHaveCount(3);
 });

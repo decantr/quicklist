@@ -3,6 +3,7 @@
 namespace Database\Factories;
 
 use App\Models\Shoplist;
+use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
@@ -18,6 +19,7 @@ class ShoplistFactory extends Factory
     public function definition(): array
     {
         return [
+            'user_id' => User::factory(),
             'date' => $this->faker->date(),
         ];
     }
