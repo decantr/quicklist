@@ -7,9 +7,18 @@ use Livewire\Attributes\On;
 use Livewire\Component;
 
 new class extends Component {
+	public ?Product $editingProduct = null;
+
 	#[On('product-created')]
+	#[On('product-updated')]
 	public function refresh(): void {
 		unset($this->products);
+	}
+
+	public function edit(Product $product): void {
+		$this->editingProduct = $product;
+
+		$this->dispatch('modal-show', name: 'edit-product');
 	}
 
 	#[Computed]
@@ -41,6 +50,19 @@ new class extends Component {
 		</div>
 	</flux:modal>
 
+	<flux:modal name="edit-product" class="min-w-[22rem]">
+		<div class="space-y-6">
+			<div>
+				<flux:heading size="lg">{{ __('Edit product') }}</flux:heading>
+				<flux:subheading>{{ __('Update product details.') }}</flux:subheading>
+			</div>
+
+			@if ($editingProduct)
+				<livewire:product.edit :product="$editingProduct" :key="$editingProduct->id" />
+			@endif
+		</div>
+	</flux:modal>
+
 	<flux:card class="p-0 overflow-hidden">
 		<flux:table>
 			<flux:table.columns>
@@ -48,13 +70,20 @@ new class extends Component {
 				<flux:table.column>{{ __('Category') }}</flux:table.column>
 				<flux:table.column>{{ __('Size') }}</flux:table.column>
 				<flux:table.column>{{ __('Created At') }}</flux:table.column>
+				<flux:table.column />
 			</flux:table.columns>
 
 			<flux:table.rows>
 				@forelse ($this->products as $product)
 					<flux:table.row :key="$product->id">
-						<flux:table.cell variant="strong">
-							{{ $product->name }}
+						<flux:table.cell>
+							<flux:button
+								wire:click="edit({{ $product->id }})"
+								variant="ghost"
+								class="-ml-3 !font-bold"
+							>
+								{{ $product->name }}
+							</flux:button>
 						</flux:table.cell>
 						<flux:table.cell>
 							<flux:badge size="sm" inset="top bottom" color="zinc">
@@ -66,6 +95,17 @@ new class extends Component {
 						</flux:table.cell>
 						<flux:table.cell class="text-zinc-500 dark:text-zinc-400">
 							{{ $product->created_at->diffForHumans() }}
+						</flux:table.cell>
+						<flux:table.cell>
+							<flux:dropdown align="end">
+								<flux:button variant="ghost" size="sm" icon="ellipsis-horizontal" inset="top bottom" />
+
+								<flux:menu>
+									<flux:menu.item wire:click="edit({{ $product->id }})" icon="pencil-square">
+										{{ __('Edit') }}
+									</flux:menu.item>
+								</flux:menu>
+							</flux:dropdown>
 						</flux:table.cell>
 					</flux:table.row>
 				@empty

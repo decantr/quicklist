@@ -9,6 +9,8 @@ use Livewire\Form;
 
 class ProductForm extends Form
 {
+	public ?Product $product = null;
+
 	#[Validate]
 	public string $name = '';
 
@@ -21,6 +23,15 @@ class ProductForm extends Form
 	#[Validate(['required', 'string'])]
 	public string $category = '';
 
+	public function setProduct(Product $product): void {
+		$this->product = $product;
+
+		$this->name = $product->name;
+		$this->size = (string) $product->size;
+		$this->size_type = $product->size_type->value;
+		$this->category = $product->category->value;
+	}
+
 	public function rules(): array {
 		return [
 			'name' => [
@@ -29,7 +40,8 @@ class ProductForm extends Form
 				'max:255',
 				Rule::unique(Product::class)
 					->where('size', $this->size)
-					->where('size_type', $this->size_type),
+					->where('size_type', $this->size_type)
+					->ignore($this->product?->id),
 			],
 		];
 	}
@@ -40,5 +52,11 @@ class ProductForm extends Form
 		Product::create($this->only(['name', 'size', 'size_type', 'category']));
 
 		$this->reset();
+	}
+
+	public function update(): void {
+		$this->validate();
+
+		$this->product->update($this->only(['name', 'size', 'size_type', 'category']));
 	}
 }

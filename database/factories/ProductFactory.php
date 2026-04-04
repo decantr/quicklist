@@ -2,6 +2,7 @@
 
 namespace Database\Factories;
 
+use App\Enums\Category;
 use App\Enums\SizeType;
 use App\Models\Product;
 use Illuminate\Database\Eloquent\Factories\Factory;
@@ -21,6 +22,7 @@ class ProductFactory extends Factory
 			'name' => $this->faker->word(),
 			'size' => $this->faker->randomFloat(2, 0.1, 1000),
 			'size_type' => $this->faker->randomElement(SizeType::cases()),
+			'category' => $this->faker->randomElement(Category::cases()),
 		];
 	}
 }
