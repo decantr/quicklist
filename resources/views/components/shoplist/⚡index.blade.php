@@ -63,7 +63,9 @@ new class extends Component {
 				@forelse ($this->shoplists as $shoplist)
 					<flux:table.row :key="$shoplist->id">
 						<flux:table.cell variant="strong">
-							{{ $shoplist->date->format('M d, Y') }}
+							<flux:link :href="route('shoplists.show', $shoplist)" class="cursor-pointer">
+								{{ $shoplist->date->format('M d, Y') }}
+							</flux:link>
 						</flux:table.cell>
 						<flux:table.cell>
 							<flux:badge size="sm" inset="top bottom">

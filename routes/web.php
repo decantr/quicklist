@@ -7,6 +7,7 @@ Route::redirect('/', '/login')->name('home');
 Route::middleware(['auth', 'verified'])->group(function () {
 	Route::view('dashboard', 'dashboard')->name('dashboard');
 	Route::livewire('shoplists', 'shoplist.index')->name('shoplists.index');
+	Route::livewire('shoplists/{shoplist}', 'shoplist.show')->name('shoplists.show');
 	Route::livewire('products', 'product.index')->name('products.index');
 });
 
