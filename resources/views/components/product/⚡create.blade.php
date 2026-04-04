@@ -7,10 +7,14 @@ use Livewire\Component;
 new class extends Component {
 	public ProductForm $form;
 
-	public function save(): void {
+	public function save(bool $close = true): void {
 		$this->form->store();
 
 		$this->dispatch('product-created');
+
+		if ($close) {
+			$this->dispatch('modal-close', name: 'create-product');
+		}
 
 		Flux::toast(__('Product created successfully.'));
 	}
@@ -43,7 +47,17 @@ new class extends Component {
 		</flux:select>
 	</div>
 
-	<div class="flex justify-end">
+	<div class="flex justify-end gap-3">
+		<flux:modal.close>
+			<flux:button variant="ghost">
+				{{ __('Cancel') }}
+			</flux:button>
+		</flux:modal.close>
+
+		<flux:button wire:click="save(false)" variant="filled">
+			{{ __('Create & Add Another') }}
+		</flux:button>
+
 		<flux:button type="submit" variant="primary">
 			{{ __('Create Product') }}
 		</flux:button>

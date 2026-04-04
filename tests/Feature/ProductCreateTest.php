@@ -17,7 +17,28 @@ test('can create product', function () {
 		->set('form.size_type', SizeType::Grams->value)
 		->call('save')
 		->assertHasNoErrors()
-		->assertDispatched('product-created');
+		->assertDispatched('product-created')
+		->assertDispatched('modal-close', name: 'create-product');
+
+	$this->assertDatabaseHas('products', [
+		'name' => 'Apple',
+		'size' => 150.00,
+		'size_type' => SizeType::Grams->value,
+	]);
+});
+
+test('can create product and stay on modal', function () {
+	$user = User::factory()->create();
+
+	Livewire::actingAs($user)
+		->test('product.create')
+		->set('form.name', 'Apple')
+		->set('form.size', 150)
+		->set('form.size_type', SizeType::Grams->value)
+		->call('save', false)
+		->assertHasNoErrors()
+		->assertDispatched('product-created')
+		->assertNotDispatched('modal-close', ['name' => 'create-product']);
 
 	$this->assertDatabaseHas('products', [
 		'name' => 'Apple',
