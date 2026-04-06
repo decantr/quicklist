@@ -9,12 +9,14 @@ use Flux\Flux;
 
 new #[Title('Shopping List Details')] class extends Component {
 	public Shoplist $shoplist;
+	public string $date;
 
 	public ?int $productId = null;
 	public int $quantity = 1;
 
 	public function mount(Shoplist $shoplist): void {
 		$this->shoplist = $shoplist;
+		$this->date = $shoplist->date->format('Y-m-d');
 	}
 
 	#[Computed]
@@ -55,14 +57,33 @@ new #[Title('Shopping List Details')] class extends Component {
 
 		Flux::modal('add-product')->close();
 	}
+
+	public function updateDate(): void {
+		$this->validate([
+			'date' => 'required|date',
+		]);
+
+		$this->shoplist->update([
+			'date' => $this->date,
+		]);
+
+		Flux::modal('edit-date')->close();
+		Flux::toast(__('Shopping list date updated.'));
+	}
 };
 ?>
 
 <div class="flex h-full w-full flex-1 flex-col gap-4 rounded-xl">
 	<div class="flex items-center justify-between">
-		<flux:heading size="xl">
-			{{ __('Shopping List') }}: {{ $shoplist->date->format('M d, Y') }}
-		</flux:heading>
+		<div class="flex items-center gap-2">
+			<flux:heading size="xl">
+				{{ __('Shopping List') }}: {{ $shoplist->date->format('M d, Y') }}
+			</flux:heading>
+
+			<flux:modal.trigger name="edit-date">
+				<flux:button variant="ghost" icon="pencil-square" size="sm" inset="top bottom" />
+			</flux:modal.trigger>
+		</div>
 
 		<div class="flex gap-2">
 			<flux:modal.trigger name="add-product">
@@ -100,6 +121,27 @@ new #[Title('Shopping List Details')] class extends Component {
 				</flux:modal.close>
 
 				<flux:button type="submit" variant="primary">{{ __('Add to list') }}</flux:button>
+			</div>
+		</form>
+	</flux:modal>
+
+	<flux:modal name="edit-date" class="md:w-96">
+		<form wire:submit="updateDate" class="flex flex-col gap-6">
+			<div>
+				<flux:heading size="lg">{{ __('Edit Date') }}</flux:heading>
+				<flux:text>{{ __('Update the date for this shopping list.') }}</flux:text>
+			</div>
+
+			<flux:input type="date" wire:model="date" label="{{ __('Date') }}" />
+
+			<div class="flex gap-2">
+				<flux:spacer />
+
+				<flux:modal.close>
+					<flux:button variant="ghost">{{ __('Cancel') }}</flux:button>
+				</flux:modal.close>
+
+				<flux:button type="submit" variant="primary">{{ __('Update Date') }}</flux:button>
 			</div>
 		</form>
 	</flux:modal>

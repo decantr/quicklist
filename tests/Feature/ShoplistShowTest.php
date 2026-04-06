@@ -176,3 +176,20 @@ test('shopping list formatted output handles fridge category', function () {
 		->assertSee('Yogurt')
 		->assertSee('Fridge');
 });
+
+test('shopping list date can be updated', function () {
+	$user = User::factory()->create();
+	$shoplist = Shoplist::factory()->create([
+		'user_id' => $user->id,
+		'date' => '2026-04-01',
+	]);
+
+	Livewire::actingAs($user)
+		->test('shoplist.show', ['shoplist' => $shoplist])
+		->set('date', '2026-04-10')
+		->call('updateDate')
+		->assertHasNoErrors()
+		->assertSee('Apr 10, 2026');
+
+	expect($shoplist->fresh()->date->format('Y-m-d'))->toBe('2026-04-10');
+});
