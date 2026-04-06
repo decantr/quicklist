@@ -121,3 +121,39 @@ test('shopping list show page contains formatted text output separated by catego
 		->and($output)->toContain('1x Bread (1 g)')
 		->and($output)->toMatch('/\n\n/');
 });
+
+test('shopping list formatted output handles count size type', function () {
+	$user = User::factory()->create();
+	$shoplist = Shoplist::factory()->create(['user_id' => $user->id]);
+
+	$eggs = Product::factory()->create([
+		'name' => 'Eggs',
+		'size' => 12,
+		'size_type' => \App\Enums\SizeType::Count,
+		'category' => \App\Enums\Category::Dairy,
+	]);
+
+	$shoplist->products()->attach($eggs->id, ['quantity' => 1]);
+
+	Livewire::actingAs($user)
+		->test('shoplist.show', ['shoplist' => $shoplist])
+		->assertSee('1x Eggs (12 count)');
+});
+
+test('shopping list formatted output handles pint size type', function () {
+	$user = User::factory()->create();
+	$shoplist = Shoplist::factory()->create(['user_id' => $user->id]);
+
+	$beer = Product::factory()->create([
+		'name' => 'Beer',
+		'size' => 1,
+		'size_type' => \App\Enums\SizeType::Pint,
+		'category' => \App\Enums\Category::Other,
+	]);
+
+	$shoplist->products()->attach($beer->id, ['quantity' => 2]);
+
+	Livewire::actingAs($user)
+		->test('shoplist.show', ['shoplist' => $shoplist])
+		->assertSee('2x Beer (1 pt)');
+});
