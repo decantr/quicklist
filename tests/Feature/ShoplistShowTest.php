@@ -157,3 +157,22 @@ test('shopping list formatted output handles pint size type', function () {
 		->test('shoplist.show', ['shoplist' => $shoplist])
 		->assertSee('2x Beer (1 pt)');
 });
+
+test('shopping list formatted output handles fridge category', function () {
+	$user = User::factory()->create();
+	$shoplist = Shoplist::factory()->create(['user_id' => $user->id]);
+
+	$yogurt = Product::factory()->create([
+		'name' => 'Yogurt',
+		'size' => 500,
+		'size_type' => \App\Enums\SizeType::Grams,
+		'category' => \App\Enums\Category::Fridge,
+	]);
+
+	$shoplist->products()->attach($yogurt->id, ['quantity' => 1]);
+
+	Livewire::actingAs($user)
+		->test('shoplist.show', ['shoplist' => $shoplist])
+		->assertSee('Yogurt')
+		->assertSee('Fridge');
+});
