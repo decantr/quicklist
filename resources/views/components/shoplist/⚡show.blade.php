@@ -199,9 +199,7 @@ new #[Title('Shopping List Details')] class extends Component {
 				>{{ __('Copy') }}</flux:button>
 			</div>
 
-			<div class="formatted-output font-mono text-sm bg-zinc-50 dark:bg-zinc-900 p-4 rounded-lg border border-zinc-200 dark:border-zinc-700 space-y-4 whitespace-pre">
-				{{ $this->textOutput }}
-			</div>
+			<pre class="formatted-output font-mono text-sm bg-zinc-50 dark:bg-zinc-900 p-4 rounded-lg border border-zinc-200 dark:border-zinc-700 whitespace-pre-wrap">{{ $this->textOutput }}</pre>
 		</flux:card>
 	@endif
 </div>

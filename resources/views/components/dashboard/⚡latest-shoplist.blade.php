@@ -222,9 +222,7 @@ new class extends Component {
 					</flux:table>
 				</div>
 
-				<div class="formatted-output hidden">
-					{{ $this->textOutput }}
-				</div>
+				<pre class="formatted-output hidden">{{ $this->textOutput }}</pre>
 			@else
 				<div class="flex flex-1 items-center justify-center text-zinc-500 italic">
 					{{ __('No products in the latest shopping list.') }}
