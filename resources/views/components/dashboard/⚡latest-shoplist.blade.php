@@ -31,7 +31,12 @@ new class extends Component {
 
 	#[Computed]
 	public function allProducts() {
-		return Product::query()->orderBy('name')->get();
+		$existingProductIds = $this->latestShoplist?->products()->pluck('product_id')->toArray() ?? [];
+
+		return Product::query()
+			->whereNotIn('id', $existingProductIds)
+			->orderBy('name')
+			->get();
 	}
 
 	#[Computed]
@@ -50,7 +55,15 @@ new class extends Component {
 		}
 
 		$this->validate([
-			'productId' => 'required|exists:products,id',
+			'productId' => [
+				'required',
+				'exists:products,id',
+				function ($attribute, $value, $fail) {
+					if ($this->latestShoplist->products()->where('product_id', $value)->exists()) {
+						$fail(__('This product is already in the shopping list.'));
+					}
+				},
+			],
 			'quantity' => 'required|integer|min:1',
 		]);
 

@@ -64,7 +64,7 @@ test('products can be added to shopping list with quantity', function () {
 	expect($shoplist->products()->where('product_id', $product->id)->first()->pivot->quantity)->toBe(5);
 });
 
-test('existing products in shopping list can have their quantity updated', function () {
+test('duplicate products in shopping list cannot be added', function () {
 	$user = User::factory()->create();
 	$shoplist = Shoplist::factory()->create(['user_id' => $user->id]);
 	$product = Product::factory()->create(['name' => 'Apple']);
@@ -75,12 +75,10 @@ test('existing products in shopping list can have their quantity updated', funct
 		->set('productId', $product->id)
 		->set('quantity', 10)
 		->call('addProduct')
-		->assertHasNoErrors()
-		->assertSee('Apple')
-		->assertSee('10');
+		->assertHasErrors(['productId']);
 
 	expect($shoplist->products()->count())->toBe(1);
-	expect($shoplist->products()->where('product_id', $product->id)->first()->pivot->quantity)->toBe(10);
+	expect($shoplist->products()->where('product_id', $product->id)->first()->pivot->quantity)->toBe(1);
 });
 
 test('shopping list show page contains formatted text output separated by category', function () {

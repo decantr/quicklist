@@ -32,7 +32,12 @@ new #[Title('Shopping List Details')] class extends Component {
 
 	#[Computed]
 	public function allProducts() {
-		return Product::query()->orderBy('name')->get();
+		$existingProductIds = $this->shoplist->products()->pluck('product_id')->toArray();
+
+		return Product::query()
+			->whereNotIn('id', $existingProductIds)
+			->orderBy('name')
+			->get();
 	}
 
 	#[Computed]
@@ -47,7 +52,15 @@ new #[Title('Shopping List Details')] class extends Component {
 
 	public function addProduct(): void {
 		$this->validate([
-			'productId' => 'required|exists:products,id',
+			'productId' => [
+				'required',
+				'exists:products,id',
+				function ($attribute, $value, $fail) {
+					if ($this->shoplist->products()->where('product_id', $value)->exists()) {
+						$fail(__('This product is already in the shopping list.'));
+					}
+				},
+			],
 			'quantity' => 'required|integer|min:1',
 		]);
 

@@ -109,3 +109,19 @@ test('products in the latest shopping list can be edited from the dashboard', fu
 
 	expect($shoplist->products()->where('product_id', $product->id)->first()->pivot->quantity)->toBe(10);
 });
+
+test('duplicate products cannot be added to the latest shopping list from the dashboard', function () {
+	$user = User::factory()->create();
+	$shoplist = Shoplist::factory()->create(['user_id' => $user->id, 'date' => now()]);
+	$product = Product::factory()->create(['name' => 'Milk']);
+	$shoplist->products()->attach($product->id, ['quantity' => 1]);
+
+	Livewire::actingAs($user)
+		->test('dashboard.latest-shoplist')
+		->set('productId', $product->id)
+		->set('quantity', 2)
+		->call('addProduct')
+		->assertHasErrors(['productId']);
+
+	expect($shoplist->products()->where('product_id', $product->id)->first()->pivot->quantity)->toBe(1);
+});
