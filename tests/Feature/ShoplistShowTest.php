@@ -193,3 +193,39 @@ test('shopping list date can be updated', function () {
 
 	expect($shoplist->fresh()->date->format('Y-m-d'))->toBe('2026-04-10');
 });
+
+test('products in shopping list can have their quantity updated via table action', function () {
+	$user = User::factory()->create();
+	$shoplist = Shoplist::factory()->create(['user_id' => $user->id]);
+	$product = Product::factory()->create(['name' => 'Apple']);
+	$shoplist->products()->attach($product->id, ['quantity' => 1]);
+
+	Livewire::actingAs($user)
+		->test('shoplist.show', ['shoplist' => $shoplist])
+		->assertSee('Apple')
+		->assertSee('1')
+		->call('editProduct', $product->id, 1)
+		->set('editingQuantity', 10)
+		->call('updateProduct')
+		->assertHasNoErrors()
+		->assertSee('Apple')
+		->assertSee('10');
+
+	expect($shoplist->products()->count())->toBe(1);
+	expect($shoplist->products()->where('product_id', $product->id)->first()->pivot->quantity)->toBe(10);
+});
+
+test('products can be removed from shopping list', function () {
+	$user = User::factory()->create();
+	$shoplist = Shoplist::factory()->create(['user_id' => $user->id]);
+	$product = Product::factory()->create(['name' => 'Apple']);
+	$shoplist->products()->attach($product->id, ['quantity' => 1]);
+
+	Livewire::actingAs($user)
+		->test('shoplist.show', ['shoplist' => $shoplist])
+		->assertSee('Apple')
+		->call('removeProduct', $product->id)
+		->assertHasNoErrors();
+
+	expect($shoplist->products()->count())->toBe(0);
+});
