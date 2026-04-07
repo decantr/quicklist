@@ -25,7 +25,10 @@ test-full:
 setup:
 	sh ./_setup/alpine.sh
 	cp -n .env.example .env
+	touch database/database.sqlite
 	composer install --no-dev --optimize-autoloader --classmap-authoritative
+	php artisan key:generate
+	php artisan migrate --force
 	npm install --production --omit=dev
 
 update:

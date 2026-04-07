@@ -1,5 +1,7 @@
 <?php
 
+use App\Enums\Category;
+use App\Enums\SizeType;
 use App\Models\Product;
 use App\Models\Shoplist;
 use App\Models\User;
@@ -88,15 +90,15 @@ test('shopping list show page contains formatted text output separated by catego
 	$milk = Product::factory()->create([
 		'name' => 'Milk',
 		'size' => 500,
-		'size_type' => \App\Enums\SizeType::Millilitres,
-		'category' => \App\Enums\Category::Dairy,
+		'size_type' => SizeType::Millilitres,
+		'category' => Category::Dairy,
 	]);
 
 	$bread = Product::factory()->create([
 		'name' => 'Bread',
 		'size' => 1,
-		'size_type' => \App\Enums\SizeType::Grams, // Assuming factory uses grams as unit
-		'category' => \App\Enums\Category::Bakery,
+		'size_type' => SizeType::Grams, // Assuming factory uses grams as unit
+		'category' => Category::Bakery,
 	]);
 
 	$shoplist->products()->attach([
@@ -127,8 +129,8 @@ test('shopping list formatted output handles count size type', function () {
 	$eggs = Product::factory()->create([
 		'name' => 'Eggs',
 		'size' => 12,
-		'size_type' => \App\Enums\SizeType::Count,
-		'category' => \App\Enums\Category::Dairy,
+		'size_type' => SizeType::Count,
+		'category' => Category::Dairy,
 	]);
 
 	$shoplist->products()->attach($eggs->id, ['quantity' => 1]);
@@ -145,8 +147,8 @@ test('shopping list formatted output handles pint size type', function () {
 	$beer = Product::factory()->create([
 		'name' => 'Beer',
 		'size' => 1,
-		'size_type' => \App\Enums\SizeType::Pint,
-		'category' => \App\Enums\Category::Other,
+		'size_type' => SizeType::Pint,
+		'category' => Category::Other,
 	]);
 
 	$shoplist->products()->attach($beer->id, ['quantity' => 2]);
@@ -163,8 +165,8 @@ test('shopping list formatted output handles fridge category', function () {
 	$yogurt = Product::factory()->create([
 		'name' => 'Yogurt',
 		'size' => 500,
-		'size_type' => \App\Enums\SizeType::Grams,
-		'category' => \App\Enums\Category::Fridge,
+		'size_type' => SizeType::Grams,
+		'category' => Category::Fridge,
 	]);
 
 	$shoplist->products()->attach($yogurt->id, ['quantity' => 1]);
