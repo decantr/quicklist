@@ -17,16 +17,16 @@ use Tests\TestCase;
 */
 
 pest()
-    ->extend(TestCase::class)
-    ->use(
-        RefreshDatabase::class,
-        WithCachedConfig::class,
-        WithCachedRoutes::class,
-    )
-    ->in(
-        'Feature',
-        '../resources/views',
-    );
+	->extend(TestCase::class)
+	->use(
+		RefreshDatabase::class,
+		WithCachedConfig::class,
+		WithCachedRoutes::class,
+	)
+	->in(
+		'Feature',
+		'../resources/views',
+	);
 
 /*
 |--------------------------------------------------------------------------
