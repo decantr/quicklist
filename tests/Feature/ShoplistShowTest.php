@@ -32,7 +32,7 @@ test('shopping list detail page displays products and quantities', function () {
 	]);
 
 	Livewire::actingAs($user)
-		->test('shoplist.show', ['shoplist' => $shoplist])
+		->test('pages::shoplist.show', ['shoplist' => $shoplist])
 		->assertSee('Milk')
 		->assertSee('2')
 		->assertSee('Bread')
@@ -44,7 +44,7 @@ test('shopping list detail page shows empty message when no products', function 
 	$shoplist = Shoplist::factory()->create(['user_id' => $user->id]);
 
 	Livewire::actingAs($user)
-		->test('shoplist.show', ['shoplist' => $shoplist])
+		->test('pages::shoplist.show', ['shoplist' => $shoplist])
 		->assertSee('No products in this shopping list.');
 });
 
@@ -54,7 +54,7 @@ test('products can be added to shopping list with quantity', function () {
 	$product = Product::factory()->create(['name' => 'Apple']);
 
 	Livewire::actingAs($user)
-		->test('shoplist.show', ['shoplist' => $shoplist])
+		->test('pages::shoplist.show', ['shoplist' => $shoplist])
 		->set('productId', $product->id)
 		->set('quantity', 5)
 		->call('addProduct')
@@ -73,7 +73,7 @@ test('duplicate products in shopping list cannot be added', function () {
 	$shoplist->products()->attach($product->id, ['quantity' => 1]);
 
 	Livewire::actingAs($user)
-		->test('shoplist.show', ['shoplist' => $shoplist])
+		->test('pages::shoplist.show', ['shoplist' => $shoplist])
 		->set('productId', $product->id)
 		->set('quantity', 10)
 		->call('addProduct')
@@ -107,14 +107,14 @@ test('shopping list show page contains formatted text output separated by catego
 	]);
 
 	Livewire::actingAs($user)
-		->test('shoplist.show', ['shoplist' => $shoplist])
+		->test('pages::shoplist.show', ['shoplist' => $shoplist])
 		->assertSee('3x Milk (500 ml)')
 		->assertSee('1x Bread (1 g)')
 		->assertSee('Formatted List')
 		->assertSee('Copy');
 
 	$component = Livewire::actingAs($user)
-		->test('shoplist.show', ['shoplist' => $shoplist]);
+		->test('pages::shoplist.show', ['shoplist' => $shoplist]);
 
 	$output = $component->get('textOutput');
 	expect($output)->toContain('3x Milk (500 ml)')
@@ -136,7 +136,7 @@ test('shopping list formatted output handles count size type', function () {
 	$shoplist->products()->attach($eggs->id, ['quantity' => 1]);
 
 	Livewire::actingAs($user)
-		->test('shoplist.show', ['shoplist' => $shoplist])
+		->test('pages::shoplist.show', ['shoplist' => $shoplist])
 		->assertSee('1x Eggs (12 count)');
 });
 
@@ -154,7 +154,7 @@ test('shopping list formatted output handles pint size type', function () {
 	$shoplist->products()->attach($beer->id, ['quantity' => 2]);
 
 	Livewire::actingAs($user)
-		->test('shoplist.show', ['shoplist' => $shoplist])
+		->test('pages::shoplist.show', ['shoplist' => $shoplist])
 		->assertSee('2x Beer (1 pt)');
 });
 
@@ -172,7 +172,7 @@ test('shopping list formatted output handles fridge category', function () {
 	$shoplist->products()->attach($yogurt->id, ['quantity' => 1]);
 
 	Livewire::actingAs($user)
-		->test('shoplist.show', ['shoplist' => $shoplist])
+		->test('pages::shoplist.show', ['shoplist' => $shoplist])
 		->assertSee('Yogurt')
 		->assertSee('Fridge');
 });
@@ -185,7 +185,7 @@ test('shopping list date can be updated', function () {
 	]);
 
 	Livewire::actingAs($user)
-		->test('shoplist.show', ['shoplist' => $shoplist])
+		->test('pages::shoplist.show', ['shoplist' => $shoplist])
 		->set('date', '2026-04-10')
 		->call('updateDate')
 		->assertHasNoErrors()
@@ -201,7 +201,7 @@ test('products in shopping list can have their quantity updated via table action
 	$shoplist->products()->attach($product->id, ['quantity' => 1]);
 
 	Livewire::actingAs($user)
-		->test('shoplist.show', ['shoplist' => $shoplist])
+		->test('pages::shoplist.show', ['shoplist' => $shoplist])
 		->assertSee('Apple')
 		->assertSee('1')
 		->call('editProduct', $product->id, 1)
@@ -222,7 +222,7 @@ test('products can be removed from shopping list', function () {
 	$shoplist->products()->attach($product->id, ['quantity' => 1]);
 
 	Livewire::actingAs($user)
-		->test('shoplist.show', ['shoplist' => $shoplist])
+		->test('pages::shoplist.show', ['shoplist' => $shoplist])
 		->assertSee('Apple')
 		->call('removeProduct', $product->id)
 		->assertHasNoErrors();

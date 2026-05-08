@@ -35,7 +35,7 @@ test('shop lists page displays user shop lists', function () {
 	]);
 
 	Livewire::actingAs($user)
-		->test('shoplist.index')
+		->test('pages::shoplist.index')
 		->assertSee('Apr 01, 2026')
 		->assertSee('Apr 02, 2026')
 		->assertDontSee('Apr 03, 2026');
@@ -46,7 +46,7 @@ test('a shopping list can be created from index page', function () {
 	$today = now()->format('Y-m-d');
 
 	Livewire::actingAs($user)
-		->test('shoplist.index')
+		->test('pages::shoplist.index')
 		->call('create')
 		->assertHasNoErrors();
 
@@ -71,7 +71,7 @@ test('a shopping list copies products from the previous list', function () {
 	]);
 
 	Livewire::actingAs($user)
-		->test('shoplist.index')
+		->test('pages::shoplist.index')
 		->call('create')
 		->assertHasNoErrors();
 
@@ -94,7 +94,7 @@ test('shopping list displays correct product count', function () {
 	);
 
 	Livewire::actingAs($user)
-		->test('shoplist.index')
+		->test('pages::shoplist.index')
 		->assertSee('3 products');
 });
 
@@ -102,7 +102,7 @@ test('shop lists page displays empty message when no shop lists exist', function
 	$user = User::factory()->create();
 
 	Livewire::actingAs($user)
-		->test('shoplist.index')
+		->test('pages::shoplist.index')
 		->assertSee('No shop lists found.');
 });
 
@@ -111,7 +111,7 @@ test('a shopping list can be deleted', function () {
 	$shoplist = Shoplist::factory()->create(['user_id' => $user->id]);
 
 	Livewire::actingAs($user)
-		->test('shoplist.index')
+		->test('pages::shoplist.index')
 		->call('delete', $shoplist->id)
 		->assertHasNoErrors();
 

@@ -23,7 +23,7 @@ test('products page displays products', function () {
 	$product2 = Product::factory()->create(['name' => 'Bread']);
 
 	Livewire::actingAs($user)
-		->test('product.index')
+		->test('pages::product.index')
 		->assertSee('Milk')
 		->assertSee('Bread');
 });
@@ -32,7 +32,7 @@ test('products page displays empty message when no products exist', function () 
 	$user = User::factory()->create();
 
 	Livewire::actingAs($user)
-		->test('product.index')
+		->test('pages::product.index')
 		->assertSee('No products found.');
 });
 
@@ -41,7 +41,7 @@ test('products can be edited by clicking name', function () {
 	$product = Product::factory()->create(['name' => 'Milk']);
 
 	Livewire::actingAs($user)
-		->test('product.index')
+		->test('pages::product.index')
 		->assertSet('editingProduct', null)
 		->call('edit', $product->id)
 		->assertSet('editingProduct.id', $product->id);
@@ -53,7 +53,7 @@ test('products can be filtered by category', function () {
 	$product2 = Product::factory()->create(['name' => 'Bread', 'category' => Category::Bakery]);
 
 	Livewire::actingAs($user)
-		->test('product.index')
+		->test('pages::product.index')
 		->assertSee('Milk')
 		->assertSee('Bread')
 		->set('category', Category::Dairy->value)

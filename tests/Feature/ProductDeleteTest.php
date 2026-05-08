@@ -12,7 +12,7 @@ test('can delete product', function () {
 	$product = Product::factory()->create();
 
 	Livewire::actingAs($user)
-		->test('product.index')
+		->test('pages::product.index')
 		->call('confirmDelete', $product->id)
 		->call('delete')
 		->assertHasNoErrors()
@@ -28,7 +28,7 @@ test('can cancel product deletion', function () {
 	$product = Product::factory()->create();
 
 	Livewire::actingAs($user)
-		->test('product.index')
+		->test('pages::product.index')
 		->set('productToDelete', $product)
 		->call('cancelDelete')
 		->assertSet('productToDelete', null);
