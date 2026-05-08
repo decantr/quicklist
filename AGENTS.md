@@ -18,7 +18,6 @@ This application is a Laravel application and its main Laravel ecosystems packag
 - laravel/boost (BOOST) - v2
 - laravel/mcp (MCP) - v0
 - laravel/pail (PAIL) - v1
-- laravel/pint (PINT) - v1
 - laravel/sail (SAIL) - v1
 - pestphp/pest (PEST) - v4
 - phpunit/phpunit (PHPUNIT) - v12
@@ -163,13 +162,6 @@ This project has domain-specific skills available in `**/skills/**`. You MUST ac
 - You can use Alpine.js for client-side interactions instead of JavaScript frameworks.
 - Keep state server-side so the UI reflects it. Validate and authorize in actions as you would in HTTP requests.
 
-=== pint/core rules ===
-
-# Laravel Pint Code Formatter
-
-- If you have modified any PHP files, you must run `vendor/bin/pint --dirty --format agent` before finalizing changes to ensure your code matches the project's expected style.
-- Do not run `vendor/bin/pint --test --format agent`, simply run `vendor/bin/pint --format agent` to fix any formatting issues.
-
 === pest/core rules ===
 
 ## Pest
@@ -180,3 +172,7 @@ This project has domain-specific skills available in `**/skills/**`. You MUST ac
 - Do NOT delete tests without approval.
 
 </laravel-boost-guidelines>
+
+# Code Formatting
+- If you have modified any PHP files, you must run `make fmt` before finalizing changes to ensure your code matches the project's expected style.
+- This project uses custom formatting whenever you might pint, use `make fmt` instead
