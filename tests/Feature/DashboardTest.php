@@ -79,12 +79,17 @@ test('products can be added to the latest shopping list from the dashboard', fun
 	$shoplist = Shoplist::factory()->create(['user_id' => $user->id]);
 	$product = Product::factory()->create(['name' => 'Banana']);
 
+	$parent = Livewire::actingAs($user)
+		->test('dashboard.latest-shoplist');
+
 	Livewire::actingAs($user)
-		->test('dashboard.latest-shoplist')
+		->test('shoplist.add-product', ['shoplist' => $shoplist])
 		->set('productId', $product->id)
 		->set('quantity', 3)
 		->call('addProduct')
-		->assertHasNoErrors()
+		->assertHasNoErrors();
+
+	$parent->refresh()
 		->assertSee('Banana')
 		->assertSee('3');
 
@@ -117,7 +122,7 @@ test('duplicate products cannot be added to the latest shopping list from the da
 	$shoplist->products()->attach($product->id, ['quantity' => 1]);
 
 	Livewire::actingAs($user)
-		->test('dashboard.latest-shoplist')
+		->test('shoplist.add-product', ['shoplist' => $shoplist])
 		->set('productId', $product->id)
 		->set('quantity', 2)
 		->call('addProduct')

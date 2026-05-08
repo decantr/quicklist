@@ -3,16 +3,16 @@
 use App\Models\Shoplist;
 use App\Models\Product;
 use Livewire\Attributes\Computed;
+use Livewire\Attributes\On;
 use Livewire\Attributes\Title;
 use Livewire\Component;
 use Flux\Flux;
 
-new #[Title('Shopping List Details')] class extends Component {
+new
+#[On('product-added')]
+#[Title('Shopping List Details')] class extends Component {
 	public Shoplist $shoplist;
 	public string $date;
-
-	public ?int $productId = null;
-	public int $quantity = 1;
 
 	public ?int $editingProductId = null;
 	public int $editingQuantity = 1;
@@ -31,16 +31,6 @@ new #[Title('Shopping List Details')] class extends Component {
 	}
 
 	#[Computed]
-	public function allProducts() {
-		$existingProductIds = $this->shoplist->products()->pluck('product_id')->toArray();
-
-		return Product::query()
-			->whereNotIn('id', $existingProductIds)
-			->orderBy('name')
-			->get();
-	}
-
-	#[Computed]
 	public function groupedProducts() {
 		return $this->products->groupBy(fn ($product) => $product->category->name);
 	}
@@ -48,30 +38,6 @@ new #[Title('Shopping List Details')] class extends Component {
 	#[Computed]
 	public function textOutput(): string {
 		return $this->shoplist->formatted_list;
-	}
-
-	public function addProduct(): void {
-		$this->validate([
-			'productId' => [
-				'required',
-				'exists:products,id',
-				function ($attribute, $value, $fail) {
-					if ($this->shoplist->products()->where('product_id', $value)->exists()) {
-						$fail(__('This product is already in the shopping list.'));
-					}
-				},
-			],
-			'quantity' => 'required|integer|min:1',
-		]);
-
-		$this->shoplist->products()->syncWithoutDetaching([
-			$this->productId => ['quantity' => $this->quantity],
-		]);
-
-		$this->productId = null;
-		$this->quantity = 1;
-
-		Flux::modal('add-product')->close();
 	}
 
 	public function editProduct(int $productId, int $quantity): void {
@@ -145,33 +111,6 @@ new #[Title('Shopping List Details')] class extends Component {
 			</flux:button>
 		</div>
 	</div>
-
-	<flux:modal name="add-product" class="md:w-96">
-		<form wire:submit="addProduct" class="flex flex-col gap-6">
-			<div>
-				<flux:heading size="lg">{{ __('Add Product') }}</flux:heading>
-				<flux:text>{{ __('Select a product and specify quantity to add it to your shopping list.') }}</flux:text>
-			</div>
-
-			<flux:select wire:model="productId" label="{{ __('Product') }}" placeholder="{{ __('Choose a product...') }}" searchable>
-				@foreach ($this->allProducts as $product)
-					<flux:select.option :value="$product->id">{{ $product->name }} ({{ $product->size }} {{ $product->size_type->value }})</flux:select.option>
-				@endforeach
-			</flux:select>
-
-			<flux:input type="number" wire:model="quantity" label="{{ __('Quantity') }}" min="1" />
-
-			<div class="flex gap-2">
-				<flux:spacer />
-
-				<flux:modal.close>
-					<flux:button variant="ghost">{{ __('Cancel') }}</flux:button>
-				</flux:modal.close>
-
-				<flux:button type="submit" variant="primary">{{ __('Add to list') }}</flux:button>
-			</div>
-		</form>
-	</flux:modal>
 
 	<flux:modal name="edit-date" class="md:w-96">
 		<form wire:submit="updateDate" class="flex flex-col gap-6">
@@ -283,4 +222,6 @@ new #[Title('Shopping List Details')] class extends Component {
 			<pre class="formatted-output font-mono text-sm bg-zinc-50 dark:bg-zinc-900 p-4 rounded-lg border border-zinc-200 dark:border-zinc-700 whitespace-pre-wrap">{{ $this->textOutput }}</pre>
 		</flux:card>
 	@endif
+
+	<livewire:shoplist.add-product :$shoplist />
 </div>

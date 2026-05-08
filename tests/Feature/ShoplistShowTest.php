@@ -53,12 +53,17 @@ test('products can be added to shopping list with quantity', function () {
 	$shoplist = Shoplist::factory()->create(['user_id' => $user->id]);
 	$product = Product::factory()->create(['name' => 'Apple']);
 
+	$parent = Livewire::actingAs($user)
+		->test('pages::shoplist.show', ['shoplist' => $shoplist]);
+
 	Livewire::actingAs($user)
-		->test('pages::shoplist.show', ['shoplist' => $shoplist])
+		->test('shoplist.add-product', ['shoplist' => $shoplist])
 		->set('productId', $product->id)
 		->set('quantity', 5)
 		->call('addProduct')
-		->assertHasNoErrors()
+		->assertHasNoErrors();
+
+	$parent->refresh()
 		->assertSee('Apple')
 		->assertSee('5');
 
@@ -73,7 +78,7 @@ test('duplicate products in shopping list cannot be added', function () {
 	$shoplist->products()->attach($product->id, ['quantity' => 1]);
 
 	Livewire::actingAs($user)
-		->test('pages::shoplist.show', ['shoplist' => $shoplist])
+		->test('shoplist.add-product', ['shoplist' => $shoplist])
 		->set('productId', $product->id)
 		->set('quantity', 10)
 		->call('addProduct')
