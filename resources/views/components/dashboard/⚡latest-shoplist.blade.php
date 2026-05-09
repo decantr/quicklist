@@ -23,20 +23,9 @@ class extends Component {
 	}
 
 	#[Computed]
-	public function products() {
-		return $this->latestShoplist?->products ?? collect();
-	}
-
-	#[Computed]
-	public function groupedProducts() {
-		return $this->products->groupBy(fn ($product) => $product->category->name);
-	}
-
-	#[Computed]
 	public function textOutput(): string {
 		return $this->latestShoplist?->formatted_list ?? '';
 	}
-
 };
 ?>
 
@@ -55,7 +44,7 @@ class extends Component {
 						</flux:button>
 					</flux:modal.trigger>
 
-					@if ($this->products->isNotEmpty())
+					@if ($this->latestShoplist->products->isNotEmpty())
 						<flux:button
 							x-data
 							x-on:click="window.navigator.clipboard.writeText($el.closest('.group').querySelector('.formatted-output').innerText.trim()); Flux.toast('{{ __('Copied to clipboard') }}')"
@@ -67,54 +56,14 @@ class extends Component {
 				</div>
 			</div>
 
+			<div class="flex-1 overflow-y-auto">
+				<livewire:shoplist.products-table
+					:shoplist="$this->latestShoplist"
+				/>
+			</div>
 
-			@if ($this->products->isNotEmpty())
-				<div class="flex-1 overflow-y-auto">
-					<flux:table>
-						<flux:table.columns>
-							<flux:table.column>{{ __('Product') }}</flux:table.column>
-							<flux:table.column>{{ __('Category') }}</flux:table.column>
-							<flux:table.column>{{ __('Quantity') }}</flux:table.column>
-							<flux:table.column />
-						</flux:table.columns>
-
-						<flux:table.rows>
-							@foreach ($this->products as $product)
-								<flux:table.row :key="$product->id">
-									<flux:table.cell variant="strong">
-										{{ $product->name }} ({{ $product->size }} {{ $product->size_type->value }})
-									</flux:table.cell>
-									<flux:table.cell>
-										<flux:badge size="sm" inset="top bottom" color="zinc">
-											{{ $product->category->name }}
-										</flux:badge>
-									</flux:table.cell>
-									<flux:table.cell>
-										<flux:badge size="sm" inset="top bottom" color="blue">
-											{{ $product->pivot->quantity }}
-										</flux:badge>
-									</flux:table.cell>
-
-									<flux:table.cell>
-										<flux:dropdown align="end">
-											<flux:button variant="ghost" size="sm" icon="ellipsis-horizontal" inset="top bottom" />
-
-											<flux:menu>
-												<flux:menu.item wire:click="$dispatch('edit-product', { productId: {{ $product->id }}, quantity: {{ $product->pivot->quantity }} })" icon="pencil-square">{{ __('Edit') }}</flux:menu.item>
-											</flux:menu>
-										</flux:dropdown>
-									</flux:table.cell>
-								</flux:table.row>
-							@endforeach
-						</flux:table.rows>
-					</flux:table>
-				</div>
-
+			@if ($this->latestShoplist->products)
 				<pre class="formatted-output hidden">{{ $this->textOutput }}</pre>
-			@else
-				<div class="flex flex-1 items-center justify-center text-zinc-500 italic">
-					{{ __('No products in the latest shopping list.') }}
-				</div>
 			@endif
 		</flux:card>
 

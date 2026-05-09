@@ -70,19 +70,6 @@ it('can update the date', function () {
 	expect($shoplist->fresh()->date->format('Y-m-d'))->toBe('2026-04-10');
 });
 
-it('can remove products from shopping list', function () {
-	$shoplist = Shoplist::factory()->for($this->user)->create();
-	$product = Product::factory()->create(['name' => 'Apple']);
-	$shoplist->products()->attach($product->id, ['quantity' => 1]);
-
-	livewire('pages::shoplist.show', ['shoplist' => $shoplist])
-		->assertSee('Apple')
-		->call('removeProduct', $product->id)
-		->assertHasNoErrors();
-
-	expect($shoplist->products()->count())->toBe(0);
-});
-
 describe('copy output', function () {
 	it('contains formatted text output separated by category', function () {
 		$shoplist = Shoplist::factory()->for($this->user)->create();
