@@ -87,6 +87,9 @@ describe('stats', function () {
 
 		livewire('dashboard.stats.total-items')
 			->assertSee('15');
+
+		livewire('dashboard.stats.shoplist-size-over-time')
+			->assertSee('Size Over Time');
 	});
 
 	it('refreshes stats when events are dispatched', function () {

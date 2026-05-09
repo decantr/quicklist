@@ -49,7 +49,8 @@
 
 			@if($loading)
 				<flux:heading size="lg">
-					<div class="animate-pulse bg-gray-200 h-6 w-{{ \Illuminate\Support\Arr::random([8, 10, 12, 14, 16]) }} rounded"></div>
+					{{-- w-4 w-8 w-12 w-14 w-16 --}}
+					<flux:skeleton.line class="h-6 w-{{ \Illuminate\Support\Arr::random([8, 10, 12, 14, 16]) }}"/>
 				</flux:heading>
 			@elseif($value instanceof \Illuminate\View\ComponentSlot)
 				{{ $value }}
