@@ -58,6 +58,6 @@ describe('authenticated', function () {
 
 		get(route('dashboard'))
 			->assertOk()
-			->assertSee('No products in the latest shopping list.');
+			->assertSee('No products in this shopping list.');
 	});
 });

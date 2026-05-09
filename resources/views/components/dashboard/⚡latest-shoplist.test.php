@@ -28,7 +28,7 @@ it('shows message when latest shopping list is empty', function () {
 
 	livewire('pages::dashboard')
 		->assertOk()
-		->assertSee('No products in the latest shopping list.');
+		->assertSee('No products in this shopping list.');
 });
 
 it('displays the latest shopping list', function () {
