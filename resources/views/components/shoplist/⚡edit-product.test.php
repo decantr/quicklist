@@ -20,9 +20,10 @@ it('updates product quantity in the shoplist', function () {
 	$this->shoplist->products()->attach($product->id, ['quantity' => 1]);
 
 	livewire('shoplist.edit-product', ['shoplist' => $this->shoplist])
-		->call('edit', $product->id, 5)
+		->call('edit', $product->id)
 		->assertSet('product_id', $product->id)
-		->assertSet('quantity', 5)
+		->assertSet('quantity', 1)
+		->set('quantity', 5)
 		->call('save')
 		->assertHasNoErrors()
 		->assertDispatched('product-updated');
@@ -34,11 +35,12 @@ it('updates product quantity in the shoplist', function () {
 
 it('opens modal on edit-product event', function () {
 	$product = Product::factory()->create();
+	$this->shoplist->products()->attach($product->id, ['quantity' => 1]);
 
 	livewire('shoplist.edit-product', ['shoplist' => $this->shoplist])
-		->dispatch('edit-product', product_id: $product->id, quantity: 10)
+		->dispatch('edit-product', $product->id)
 		->assertSet('product_id', $product->id)
-		->assertSet('quantity', 10)
+		->assertSet('quantity', 1)
 		->assertDispatched('modal-show', name: 'edit-product');
 });
 
@@ -52,3 +54,13 @@ it('validates quantity', function () {
 		->call('save')
 		->assertHasErrors(['quantity' => 'min']);
 });
+
+it('handles missing product on shoplist', function () {
+	$product = Product::factory()->create();
+
+	livewire('shoplist.edit-product', ['shoplist' => $this->shoplist])
+		->dispatch('edit-product', $product->id)
+		->assertHasNoErrors()
+		->assertDispatched('toast-show');
+});
+

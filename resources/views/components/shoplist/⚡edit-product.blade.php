@@ -1,23 +1,34 @@
 <?php
 
+use App\Models\Product;
 use App\Models\Shoplist;
 use Livewire\Attributes\On;
+use Livewire\Attributes\Validate;
 use Livewire\Component;
 use Flux\Flux;
 
 new class extends Component {
 	public Shoplist $shoplist;
 
-	#[\Livewire\Attributes\Validate(['required', 'exists:products,id'])]
+	#[Validate(['required', 'exists:products,id'])]
 	public int|null $product_id = null;
 
-	#[\Livewire\Attributes\Validate(['required', 'integer', 'min:1'])]
+	#[Validate(['required', 'integer', 'min:1'])]
 	public int $quantity = 1;
 
 	#[On('edit-product')]
-	public function edit(int $product_id, int $quantity): void {
-		$this->product_id = $product_id;
-		$this->quantity = $quantity;
+	public function edit(int $product_id): void {
+		$product = $this->shoplist
+			->products
+			->find($product_id);
+
+		if ($product === null) {
+			Flux::toast('Product not on this Shop List', variant: 'warning');
+			return;
+		}
+
+		$this->product_id = $product->id;
+		$this->quantity = $product->pivot->quantity;
 
 		Flux::modal('edit-product')->show();
 	}
