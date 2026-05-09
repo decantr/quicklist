@@ -9,10 +9,8 @@ use Flux\Flux;
 
 new
 #[On('product-added')]
+#[On('product-updated')]
 class extends Component {
-	public ?int $editingProductId = null;
-	public int $editingQuantity = 1;
-
 	#[Computed]
 	public function latestShoplist() {
 		return auth()->user()
@@ -39,38 +37,6 @@ class extends Component {
 		return $this->latestShoplist?->formatted_list ?? '';
 	}
 
-	public function editProduct(int $productId, int $quantity): void {
-		$this->editingProductId = $productId;
-		$this->editingQuantity = $quantity;
-
-		Flux::modal('edit-product-dashboard')->show();
-	}
-
-	public function updateProduct(): void {
-		if (! $this->latestShoplist) {
-			return;
-		}
-
-		$this->validate([
-			'editingProductId' => 'required|exists:products,id',
-			'editingQuantity' => 'required|integer|min:1',
-		]);
-
-		$this->latestShoplist->products()->updateExistingPivot($this->editingProductId, [
-			'quantity' => $this->editingQuantity,
-		]);
-
-		$this->editingProductId = null;
-		$this->editingQuantity = 1;
-
-		unset($this->latestShoplist);
-		unset($this->products);
-		unset($this->groupedProducts);
-		unset($this->textOutput);
-
-		Flux::modal('edit-product-dashboard')->close();
-		Flux::toast(__('Product quantity updated.'));
-	}
 };
 ?>
 
@@ -101,26 +67,6 @@ class extends Component {
 				</div>
 			</div>
 
-			<flux:modal name="edit-product-dashboard" class="md:w-96">
-				<form wire:submit="updateProduct" class="flex flex-col gap-6">
-					<div>
-						<flux:heading size="lg">{{ __('Edit Quantity') }}</flux:heading>
-						<flux:text>{{ __('Update the quantity for this product in your shopping list.') }}</flux:text>
-					</div>
-
-					<flux:input type="number" wire:model="editingQuantity" label="{{ __('Quantity') }}" min="1" />
-
-					<div class="flex gap-2">
-						<flux:spacer />
-
-						<flux:modal.close>
-							<flux:button variant="ghost">{{ __('Cancel') }}</flux:button>
-						</flux:modal.close>
-
-						<flux:button type="submit" variant="primary">{{ __('Update quantity') }}</flux:button>
-					</div>
-				</form>
-			</flux:modal>
 
 			@if ($this->products->isNotEmpty())
 				<div class="flex-1 overflow-y-auto">
@@ -154,7 +100,7 @@ class extends Component {
 											<flux:button variant="ghost" size="sm" icon="ellipsis-horizontal" inset="top bottom" />
 
 											<flux:menu>
-												<flux:menu.item wire:click="editProduct({{ $product->id }}, {{ $product->pivot->quantity }})" icon="pencil-square">{{ __('Edit') }}</flux:menu.item>
+												<flux:menu.item wire:click="$dispatch('edit-product', { productId: {{ $product->id }}, quantity: {{ $product->pivot->quantity }} })" icon="pencil-square">{{ __('Edit') }}</flux:menu.item>
 											</flux:menu>
 										</flux:dropdown>
 									</flux:table.cell>
@@ -173,6 +119,7 @@ class extends Component {
 		</flux:card>
 
 		<livewire:shoplist.add-product :shoplist="$this->latestShoplist" />
+		<livewire:shoplist.edit-product :shoplist="$this->latestShoplist" />
 	@else
 		<flux:card class="h-full flex items-center justify-center text-zinc-500 italic">
 			{{ __('No shopping lists found.') }}

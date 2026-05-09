@@ -70,25 +70,6 @@ it('can update the date', function () {
 	expect($shoplist->fresh()->date->format('Y-m-d'))->toBe('2026-04-10');
 });
 
-it('can update product quantity via table action', function () {
-	$shoplist = Shoplist::factory()->for($this->user)->create();
-	$product = Product::factory()->create(['name' => 'Apple']);
-	$shoplist->products()->attach($product->id, ['quantity' => 1]);
-
-	livewire('pages::shoplist.show', ['shoplist' => $shoplist])
-		->assertSee('Apple')
-		->assertSee('1')
-		->call('editProduct', $product->id, 1)
-		->set('editingQuantity', 10)
-		->call('updateProduct')
-		->assertHasNoErrors()
-		->assertSee('Apple')
-		->assertSee('10');
-
-	expect($shoplist->products()->count())->toBe(1)
-		->and($shoplist->products()->where('product_id', $product->id)->first()->pivot->quantity)->toBe(10);
-});
-
 it('can remove products from shopping list', function () {
 	$shoplist = Shoplist::factory()->for($this->user)->create();
 	$product = Product::factory()->create(['name' => 'Apple']);

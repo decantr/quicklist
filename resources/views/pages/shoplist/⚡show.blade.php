@@ -10,12 +10,10 @@ use Flux\Flux;
 
 new
 #[On('product-added')]
+#[On('product-updated')]
 #[Title('Shopping List Details')] class extends Component {
 	public Shoplist $shoplist;
 	public string $date;
-
-	public ?int $editingProductId = null;
-	public int $editingQuantity = 1;
 
 	public function mount(Shoplist $shoplist): void {
 		$this->shoplist = $shoplist;
@@ -40,28 +38,6 @@ new
 		return $this->shoplist->formatted_list;
 	}
 
-	public function editProduct(int $productId, int $quantity): void {
-		$this->editingProductId = $productId;
-		$this->editingQuantity = $quantity;
-
-		Flux::modal('edit-product')->show();
-	}
-
-	public function updateProduct(): void {
-		$this->validate([
-			'editingQuantity' => 'required|integer|min:1',
-		]);
-
-		$this->shoplist->products()->updateExistingPivot($this->editingProductId, [
-			'quantity' => $this->editingQuantity,
-		]);
-
-		$this->editingProductId = null;
-		$this->editingQuantity = 1;
-
-		Flux::modal('edit-product')->close();
-		Flux::toast(__('Product quantity updated.'));
-	}
 
 	public function removeProduct(int $productId): void {
 		$this->shoplist->products()->detach($productId);
@@ -133,26 +109,6 @@ new
 		</form>
 	</flux:modal>
 
-	<flux:modal name="edit-product" class="md:w-96">
-		<form wire:submit="updateProduct" class="flex flex-col gap-6">
-			<div>
-				<flux:heading size="lg">{{ __('Edit Quantity') }}</flux:heading>
-				<flux:text>{{ __('Update the quantity for this product in your shopping list.') }}</flux:text>
-			</div>
-
-			<flux:input type="number" wire:model="editingQuantity" label="{{ __('Quantity') }}" min="1" />
-
-			<div class="flex gap-2">
-				<flux:spacer />
-
-				<flux:modal.close>
-					<flux:button variant="ghost">{{ __('Cancel') }}</flux:button>
-				</flux:modal.close>
-
-				<flux:button type="submit" variant="primary">{{ __('Update quantity') }}</flux:button>
-			</div>
-		</form>
-	</flux:modal>
 
 	<flux:card class="p-0 overflow-hidden">
 		<flux:table>
@@ -189,7 +145,7 @@ new
 								<flux:button variant="ghost" size="sm" icon="ellipsis-horizontal" inset="top bottom" />
 
 								<flux:menu>
-									<flux:menu.item wire:click="editProduct({{ $product->id }}, {{ $product->pivot->quantity }})" icon="pencil-square">{{ __('Edit') }}</flux:menu.item>
+									<flux:menu.item wire:click="$dispatch('edit-product', { productId: {{ $product->id }}, quantity: {{ $product->pivot->quantity }} })" icon="pencil-square">{{ __('Edit') }}</flux:menu.item>
 									<flux:menu.item wire:click="removeProduct({{ $product->id }})" wire:confirm="{{ __('Are you sure you want to remove this product from the list?') }}" icon="trash" variant="danger">{{ __('Remove') }}</flux:menu.item>
 								</flux:menu>
 							</flux:dropdown>
@@ -224,4 +180,5 @@ new
 	@endif
 
 	<livewire:shoplist.add-product :$shoplist />
+	<livewire:shoplist.edit-product :$shoplist />
 </div>
