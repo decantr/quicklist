@@ -28,8 +28,8 @@ test('a shoplist can have multiple products with different quantities', function
 	$retrievedProduct1 = $shoplist->products()->where('product_id', $product1->id)->first();
 	$retrievedProduct2 = $shoplist->products()->where('product_id', $product2->id)->first();
 
-	expect($retrievedProduct1->pivot->quantity)->toEqual(5);
-	expect($retrievedProduct2->pivot->quantity)->toEqual(10);
+	expect($retrievedProduct1->pivot->quantity)->toEqual(5)
+		->and($retrievedProduct2->pivot->quantity)->toEqual(10);
 });
 
 test('shoplist date is correctly cast', function () {
@@ -40,16 +40,16 @@ test('shoplist date is correctly cast', function () {
 		'date' => $date,
 	]);
 
-	expect($shoplist->date)->toBeInstanceOf(CarbonInterface::class);
-	expect($shoplist->date->toDateString())->toBe($date);
+	expect($shoplist->date)->toBeInstanceOf(CarbonInterface::class)
+		->and($shoplist->date->toDateString())->toBe($date);
 });
 
 test('a shoplist belongs to a user', function () {
 	$user = User::factory()->create();
 	$shoplist = Shoplist::factory()->create(['user_id' => $user->id]);
 
-	expect($shoplist->user)->toBeInstanceOf(User::class);
-	expect($shoplist->user->id)->toBe($user->id);
+	expect($shoplist->user)->toBeInstanceOf(User::class)
+		->and($shoplist->user->id)->toBe($user->id);
 });
 
 test('a user has many shoplists', function () {
