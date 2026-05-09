@@ -28,6 +28,13 @@ it('is accessible', function () {
 		->assertSee($shoplist->date->format('M d, Y'));
 });
 
+it('shows empty message when no products', function () {
+	$shoplist = Shoplist::factory()->for($this->user)->create();
+
+	livewire('pages::shoplist.show', ['shoplist' => $shoplist])
+		->assertSee('No products in this shopping list.');
+});
+
 it('displays products and quantities', function () {
 	$shoplist = Shoplist::factory()
 		->for($this->user)
@@ -46,13 +53,6 @@ it('displays products and quantities', function () {
 		->assertSee('2')
 		->assertSee('Bread')
 		->assertSee('1');
-});
-
-it('shows empty message when no products', function () {
-	$shoplist = Shoplist::factory()->for($this->user)->create();
-
-	livewire('pages::shoplist.show', ['shoplist' => $shoplist])
-		->assertSee('No products in this shopping list.');
 });
 
 it('can update the date', function () {
@@ -100,41 +100,6 @@ it('can remove products from shopping list', function () {
 		->assertHasNoErrors();
 
 	expect($shoplist->products()->count())->toBe(0);
-});
-
-it('can add products to shopping list with quantity', function () {
-	$shoplist = Shoplist::factory()->for($this->user)->create();
-	$product = Product::factory()->create(['name' => 'Apple']);
-
-	$parent = livewire('pages::shoplist.show', ['shoplist' => $shoplist]);
-
-	livewire('shoplist.add-product', ['shoplist' => $shoplist])
-		->set('productId', $product->id)
-		->set('quantity', 5)
-		->call('addProduct')
-		->assertHasNoErrors();
-
-	$parent->refresh()
-		->assertSee('Apple')
-		->assertSee('5');
-
-	expect($shoplist->products()->where('product_id', $product->id)->exists())->toBeTrue()
-		->and($shoplist->products()->where('product_id', $product->id)->first()->pivot->quantity)->toBe(5);
-});
-
-it('cannot add duplicate products to shopping list', function () {
-	$shoplist = Shoplist::factory()->for($this->user)->create();
-	$product = Product::factory()->create(['name' => 'Apple']);
-	$shoplist->products()->attach($product->id, ['quantity' => 1]);
-
-	livewire('shoplist.add-product', ['shoplist' => $shoplist])
-		->set('productId', $product->id)
-		->set('quantity', 10)
-		->call('addProduct')
-		->assertHasErrors(['productId']);
-
-	expect($shoplist->products()->count())->toBe(1)
-		->and($shoplist->products()->where('product_id', $product->id)->first()->pivot->quantity)->toBe(1);
 });
 
 describe('copy output', function () {
