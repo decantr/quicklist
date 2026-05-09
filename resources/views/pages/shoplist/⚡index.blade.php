@@ -32,16 +32,21 @@ new class extends Component {
 				return [$product->id => ['quantity' => $product->pivot->quantity]];
 			})->toArray();
 
-			$shoplist->products()->attach($products);
+ 		$shoplist->products()->attach($products);
 		}
 
 		unset($this->shoplists);
+
+		$this->dispatch('shoplist-created');
 
 		Flux::toast(__('Shopping list created.'));
 	}
 	public function delete(Shoplist $shoplist): void {
 		$shoplist->delete();
 		unset($this->shoplists);
+
+		$this->dispatch('shoplist-deleted');
+
 		Flux::toast(__('Shopping list deleted.'));
 	}
 };

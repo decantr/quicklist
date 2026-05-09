@@ -45,6 +45,8 @@ new class extends Component {
 
 		$this->dispatch('modal-close', name: 'confirm-product-deletion');
 
+		$this->dispatch('product-deleted');
+
 		$this->refresh();
 
 		Flux::toast(__('Product deleted successfully.'));
