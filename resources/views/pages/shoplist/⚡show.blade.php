@@ -93,7 +93,7 @@ new
 	</flux:modal>
 
 
-	<flux:card class="p-0 overflow-hidden">
+	<flux:card class="overflow-hidden">
 		<livewire:shoplist.products-table :$shoplist show-size-column allow-removal />
 	</flux:card>
 
