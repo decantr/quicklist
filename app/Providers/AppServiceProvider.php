@@ -20,6 +20,11 @@ class AppServiceProvider extends ServiceProvider
 	 */
 	public function boot(): void {
 		$this->configureDefaults();
+
+		// fix for livewire assets being served over http
+		if (\app()->isProduction()) {
+			\URL::forceScheme('https');
+		}
 	}
 
 	/**
