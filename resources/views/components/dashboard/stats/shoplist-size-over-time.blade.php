@@ -39,10 +39,12 @@ class extends Component {
                     $height = ($point['count'] / $max) * 100;
                 @endphp
 				<flux:tooltip
-					class="bg-accent flex-1 rounded-t-xs min-w-0.5"
-					style="height: {{ max(10, $height) }}%"
+					class="flex size-full items-end"
 				>
-					<div></div>
+					<div
+						class="bg-accent flex-1 rounded-t-xs min-w-4"
+						style="height: {{ max(10, $height) }}%"
+					></div>
 
 					<x-slot:content>
 						<flux:heading>
