@@ -69,7 +69,7 @@ class extends Component {
 							<flux:menu>
 								<flux:menu.item
 									icon="pencil-square"
-									wire:click="$dispatch('edit-product', {{ $product->id }})"
+									wire:click="$dispatch('edit-product', '{{ $product->id }}')"
 								>
 									{{ __('Edit') }}
 								</flux:menu.item>
