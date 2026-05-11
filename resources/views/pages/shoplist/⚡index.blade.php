@@ -59,7 +59,7 @@ new class extends Component {
 		</flux:button>
 	</div>
 
-	<flux:card class="p-0 overflow-hidden">
+	<flux:card class="overflow-hidden">
 		<flux:table>
 			<flux:table.columns>
 				<flux:table.column>{{ __('Date') }}</flux:table.column>

@@ -127,7 +127,7 @@ new class extends Component {
 		</form>
 	</flux:modal>
 
-	<flux:card class="p-0 overflow-hidden">
+	<flux:card class="overflow-hidden">
 		<flux:table>
 			<flux:table.columns>
 				<flux:table.column>{{ __('Name') }}</flux:table.column>
