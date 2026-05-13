@@ -53,7 +53,7 @@ new class extends Component {
 ?>
 
 <flux:modal name="edit-product" class="md:w-96">
-	<form wire:submit="updateProduct" class="flex flex-col gap-6">
+	<form wire:submit="save" class="flex flex-col gap-6">
 		<div>
 			<flux:heading size="lg">{{ __('Edit Quantity') }}</flux:heading>
 			<flux:text>{{ __('Update the quantity for this product in your shopping list.') }}</flux:text>
