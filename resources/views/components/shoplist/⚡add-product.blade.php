@@ -72,9 +72,10 @@ new class extends Component {
 			searchable
 			wire:model="productId"
 		>
+			<flux:select.option></flux:select.option>
 			@foreach ($this->products as $product)
-				<flux:select.option :value="$product->id">{{ $product->name }}
-					({{ $product->size }} {{ $product->size_type->value }})
+				<flux:select.option :value="$product->id">
+					{{ $product->name }} ({{ $product->size }} {{ $product->size_type->value }})
 				</flux:select.option>
 			@endforeach
 		</flux:select>
