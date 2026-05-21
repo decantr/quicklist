@@ -40,6 +40,7 @@ class extends Component {
                 @endphp
 				<flux:tooltip
 					class="flex size-full items-end"
+					position="bottom"
 				>
 					<div
 						class="bg-accent flex-1 rounded-t-xs min-w-4"
