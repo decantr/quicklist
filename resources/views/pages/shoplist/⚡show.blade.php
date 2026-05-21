@@ -65,7 +65,7 @@ new
 				</flux:button>
 			</flux:modal.trigger>
 
-			<flux:button :href="route('shoplists.index')" variant="ghost" icon="chevron-left">
+			<flux:button :href="route('shoplists.index')" variant="ghost" icon="chevron-left" wire:navigate.hover>
 				{{ __('Back to lists') }}
 			</flux:button>
 		</div>

@@ -7,16 +7,16 @@
         <flux:header container class="border-b border-zinc-200 bg-zinc-50 dark:border-zinc-700 dark:bg-zinc-900">
             <flux:sidebar.toggle class="lg:hidden mr-2" icon="bars-2" inset="left" />
 
-            <x-app-logo href="{{ route('dashboard') }}" wire:navigate />
+            <x-app-logo href="{{ route('dashboard') }}" wire:navigate.hover />
 
             <flux:navbar class="-mb-px max-lg:hidden">
-                <flux:navbar.item icon="layout-grid" :href="route('dashboard')" :current="request()->routeIs('dashboard')" wire:navigate>
+                <flux:navbar.item icon="layout-grid" :href="route('dashboard')" :current="request()->routeIs('dashboard')" wire:navigate.hover>
                     {{ __('Dashboard') }}
                 </flux:navbar.item>
-                <flux:navbar.item icon="shopping-bag" :href="route('shoplists.index')" :current="request()->routeIs('shoplists.index')" wire:navigate>
+                <flux:navbar.item icon="shopping-bag" :href="route('shoplists.index')" :current="request()->routeIs('shoplists.index')" wire:navigate.hover>
                     {{ __('Shop Lists') }}
                 </flux:navbar.item>
-                <flux:navbar.item icon="package-2" :href="route('products.index')" :current="request()->routeIs('products.index')" wire:navigate>
+                <flux:navbar.item icon="package-2" :href="route('products.index')" :current="request()->routeIs('products.index')" wire:navigate.hover>
                     {{ __('Products') }}
                 </flux:navbar.item>
             </flux:navbar>
@@ -53,19 +53,19 @@
         <!-- Mobile Menu -->
         <flux:sidebar collapsible="mobile" sticky class="lg:hidden border-e border-zinc-200 bg-zinc-50 dark:border-zinc-700 dark:bg-zinc-900">
             <flux:sidebar.header>
-                <x-app-logo :sidebar="true" href="{{ route('dashboard') }}" wire:navigate />
+                <x-app-logo :sidebar="true" href="{{ route('dashboard') }}" wire:navigate.hover />
                 <flux:sidebar.collapse class="in-data-flux-sidebar-on-desktop:not-in-data-flux-sidebar-collapsed-desktop:-mr-2" />
             </flux:sidebar.header>
 
             <flux:sidebar.nav>
                 <flux:sidebar.group :heading="__('Platform')">
-                    <flux:sidebar.item icon="layout-grid" :href="route('dashboard')" :current="request()->routeIs('dashboard')" wire:navigate>
+                    <flux:sidebar.item icon="layout-grid" :href="route('dashboard')" :current="request()->routeIs('dashboard')" wire:navigate.hover>
                         {{ __('Dashboard')  }}
                     </flux:sidebar.item>
-                    <flux:sidebar.item icon="shopping-bag" :href="route('shoplists.index')" :current="request()->routeIs('shoplists.index')" wire:navigate>
+                    <flux:sidebar.item icon="shopping-bag" :href="route('shoplists.index')" :current="request()->routeIs('shoplists.index')" wire:navigate.hover>
                         {{ __('Shop Lists') }}
                     </flux:sidebar.item>
-                    <flux:sidebar.item icon="archive-box" :href="route('products.index')" :current="request()->routeIs('products.index')" wire:navigate>
+                    <flux:sidebar.item icon="archive-box" :href="route('products.index')" :current="request()->routeIs('products.index')" wire:navigate.hover>
                         {{ __('Products') }}
                     </flux:sidebar.item>
                 </flux:sidebar.group>

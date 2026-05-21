@@ -72,7 +72,7 @@ new class extends Component {
 				@forelse ($this->shoplists as $shoplist)
 					<flux:table.row :key="$shoplist->id">
 						<flux:table.cell variant="strong">
-							<flux:link :href="route('shoplists.show', $shoplist)" class="cursor-pointer">
+							<flux:link :href="route('shoplists.show', $shoplist)" class="cursor-pointer" wire:navigate.hover>
 								{{ $shoplist->date->format('M d, Y') }}
 							</flux:link>
 						</flux:table.cell>
