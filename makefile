@@ -12,6 +12,17 @@ dev:
 fmt:
 	./vendor/bin/php-cs-fixer fix $(_file)
 
+update:
+	composer update -W \
+		laravel/framework \
+		laravel/boost \
+		laravel/fortify \
+		laravel/tinker \
+		livewire/livewire \
+		livewire/flux \
+
+	deno update --minimum-dependency-age=P1W
+
 # test ========================================================================
 test:
 	php artisan test --parallel

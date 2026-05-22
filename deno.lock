@@ -1,12 +1,12 @@
 {
   "version": "5",
   "specifiers": {
-    "npm:@tailwindcss/vite@^4.1.11": "4.3.0_vite@8.0.13",
-    "npm:autoprefixer@^10.4.20": "10.5.0_postcss@8.5.14",
-    "npm:concurrently@^9.0.1": "9.2.1",
-    "npm:laravel-vite-plugin@3": "3.1.0_vite@8.0.13",
-    "npm:tailwindcss@^4.0.7": "4.3.0",
-    "npm:vite@8": "8.0.13"
+    "npm:@tailwindcss/vite@^4.3.0": "4.3.0_vite@8.0.13",
+    "npm:autoprefixer@^10.5.0": "10.5.0_postcss@8.5.14",
+    "npm:concurrently@^9.2.1": "9.2.1",
+    "npm:laravel-vite-plugin@^3.1.0": "3.1.0_vite@8.0.13",
+    "npm:tailwindcss@^4.3.0": "4.3.0",
+    "npm:vite@^8.0.13": "8.0.13"
   },
   "npm": {
     "@emnapi/core@1.10.0": {
@@ -641,12 +641,12 @@
   "workspace": {
     "packageJson": {
       "dependencies": [
-        "npm:@tailwindcss/vite@^4.1.11",
-        "npm:autoprefixer@^10.4.20",
-        "npm:concurrently@^9.0.1",
-        "npm:laravel-vite-plugin@3",
-        "npm:tailwindcss@^4.0.7",
-        "npm:vite@8"
+        "npm:@tailwindcss/vite@^4.3.0",
+        "npm:autoprefixer@^10.5.0",
+        "npm:concurrently@^9.2.1",
+        "npm:laravel-vite-plugin@^3.1.0",
+        "npm:tailwindcss@^4.3.0",
+        "npm:vite@^8.0.13"
       ]
     }
   }
