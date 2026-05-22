@@ -5,7 +5,7 @@
 apk add \
 	git \
 	make \
-	npm \
+	deno \
 
 
 # php deps
