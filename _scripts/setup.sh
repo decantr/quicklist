@@ -26,7 +26,7 @@ else
 fi
 
 case $ID in
-"Alpine") sh ./_setup/alpine.sh;;
+"Alpine") sh ./_scripts/alpine.sh;;
 *)  error "Unknown Distro" ;;
 esac
 

@@ -12,7 +12,7 @@ dev:
 fmt:
 	./vendor/bin/php-cs-fixer fix $(_file)
 
-update:
+bump-deps:
 	composer update -W \
 		laravel/framework \
 		laravel/boost \
@@ -38,4 +38,7 @@ build:
 
 # setup =======================================================================
 setup:
-	sh ./_setup/alpine.sh
+	sh ./_scripts/alpine.sh
+
+update:
+	sh ./_scripts/update.sh
