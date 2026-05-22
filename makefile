@@ -39,7 +39,7 @@ build:
 
 # setup =======================================================================
 setup:
-	sh ./_scripts/alpine.sh
+	sh ./_scripts/setup.sh
 
 update:
 	sh ./_scripts/update.sh

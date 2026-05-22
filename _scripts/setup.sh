@@ -1,7 +1,6 @@
 #!/bin/sh
 # single entry point for setting up this project
 
-
 # helper functions ============================================================
 
 curdate() {
@@ -13,21 +12,21 @@ info() {
 }
 
 error() {
-	echo "!! $(curdate) : $1";
-	exit 1;
+	echo "!! $(curdate) : $1"
+	exit 1
 }
 
 # os dependencies =============================================================
 
 if [ -f /etc/os-release ]; then
-	. /etc/os-release;
+	. /etc/os-release
 else
-	error "Unknown Distro";
+	error "Unknown Distro"
 fi
 
 case $ID in
-"Alpine") sh ./_scripts/alpine.sh;;
-*)  error "Unknown Distro" ;;
+"alpine") sh ./_scripts/alpine.sh ;;
+*) error "Unknown Distro" ;;
 esac
 
 # file setup ==================================================================
@@ -45,4 +44,4 @@ php storage:link
 
 # finish ======================================================================
 info 'Done'
-exit 0;
+exit 0
