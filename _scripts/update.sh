@@ -6,7 +6,7 @@ git pull origin master # || git reset --hard origin/master
 
 # dependency update
 composer install --no-dev --no-interaction --prefer-dist --optimize-autoloader
-deno install --minimum-dependency-age=P1W # --prod AFTER deno 2.8
+deno install # --prod AFTER deno 2.8
 
 # migrations
 php artisan migrate --force
