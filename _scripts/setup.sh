@@ -3,25 +3,25 @@
 
 # helper functions ============================================================
 
-curdate() {
+_curdate() {
 	date -u "+%F %T"
 }
 
-info() {
-	echo ":: $(curdate) : $1"
+_info() {
+	echo ":: $(_curdate) : $1"
 }
 
-error() {
-	echo "!! $(curdate) : $1"
+_error() {
+	echo "!! $(_curdate) : $1"
 	exit 1
 }
 
 # root check ==================================================================
 if [ "$(id -u)" -ne 0 ]; then
-	info "Asking for sudo"
+	_info "Asking for sudo"
 
 	if ! sudo -v; then
-		error "Sudo failed"
+		_error "Sudo failed"
 	fi
 fi
 
@@ -29,7 +29,7 @@ fi
 if [ -f /etc/os-release ]; then
 	. /etc/os-release
 else
-	error "Unknown Distro"
+	_error "Unknown Distro"
 fi
 
 case $ID in
@@ -37,10 +37,10 @@ case $ID in
 "ubuntu")
 	case $VERSION_ID in
 	"26.04") sh ./_scripts/install-ubuntu-2604.sh ;;
-	*) error "Unknown ubuntu version" ;;
+	*) _error "Unknown ubuntu version" ;;
 	esac
 	;;
-*) error "Unknown Distro" ;;
+*) _error "Unknown Distro" ;;
 esac
 
 # file setup ==================================================================
@@ -57,5 +57,5 @@ php artisan migrate --force
 php artisan storage:link
 
 # finish ======================================================================
-info 'Done'
+_info 'Done'
 exit 0
