@@ -16,8 +16,16 @@ error() {
 	exit 1
 }
 
-# os dependencies =============================================================
+# root check ==================================================================
+if [ "$(id -u)" -ne 0 ]; then
+	info "Asking for sudo"
 
+	if ! sudo -v; then
+		error "Sudo failed"
+	fi
+fi
+
+# os dependencies =============================================================
 if [ -f /etc/os-release ]; then
 	. /etc/os-release
 else
@@ -25,7 +33,13 @@ else
 fi
 
 case $ID in
-"alpine") sh ./_scripts/alpine.sh ;;
+"alpine") sh ./_scripts/install-alpine.sh ;;
+"ubuntu")
+	case $VERSION_ID in
+	"26.04") sh ./_scripts/install-ubuntu-2604.sh ;;
+	*) error "Unknown ubuntu version" ;;
+	esac
+	;;
 *) error "Unknown Distro" ;;
 esac
 
