@@ -32,7 +32,8 @@ test-coverage:
 
 # deploy ======================================================================
 build:
-	deno run build
+	# deno run build - TODO restore this after alpine updates its repos
+	npm run build
 	php artisan optimize:clear
 	php artisan optimize
 
