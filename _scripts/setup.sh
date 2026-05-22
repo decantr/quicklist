@@ -40,7 +40,7 @@ deno install --minimum-dependency-age=P1W # --prod AFTER deno 2.8
 # php setup ===================================================================
 php artisan key:generate
 php artisan migrate --force
-php storage:link
+php artisan storage:link
 
 # finish ======================================================================
 info 'Done'
