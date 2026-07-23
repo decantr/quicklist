@@ -34,6 +34,7 @@ fi
 
 case $ID in
 "alpine") sh ./_scripts/install-alpine.sh ;;
+"arch") sh ./_scripts/install-arch.sh ;;
 "ubuntu")
 	case $VERSION_ID in
 	"26.04") sh ./_scripts/install-ubuntu-2604.sh ;;
