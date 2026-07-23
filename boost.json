@@ -1,7 +1,8 @@
 {
     "agents": [
         "junie",
-        "opencode"
+        "opencode",
+        "zed"
     ],
     "cloud": false,
     "guidelines": true,
