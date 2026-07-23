@@ -25,3 +25,4 @@ auth.json
 .ai/
 .php-cs-fixer.cache
 .junie/memory
+storage/debugbar
