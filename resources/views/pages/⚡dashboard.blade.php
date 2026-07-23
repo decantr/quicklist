@@ -13,6 +13,13 @@ new class extends Component {
 		<livewire:dashboard.stats.total-items lazy />
 		<livewire:dashboard.stats.shoplist-size-over-time lazy />
 	</div>
+	<div class="grid auto-rows-min gap-4 md:grid-cols-2">
+		<x-stat-card :label="__('Shoplists by Category')">
+			<x-slot name="value">
+				<livewire:dashboard.stats.shoplists-by-category lazy />
+			</x-slot>
+		</x-stat-card>
+	</div>
 	<div class="relative h-full flex-1 overflow-hidden">
 		<livewire:dashboard.latest-shoplist/>
 	</div>
