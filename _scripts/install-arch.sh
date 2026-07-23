@@ -2,10 +2,10 @@
 # install the dependencies for arch linux
 
 # dependencies
-# sudo pacman -Sy \
-# 	git \
-# 	make \
-# 	deno \
+sudo pacman -Sy \
+	git \
+	make \
+	deno \
 
 
 # php deps
