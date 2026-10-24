@@ -39,9 +39,7 @@
 			<input type="hidden" name="product_id" :value="edit.id">
 			<input type="hidden" name="product_name" :value="edit.name">
 			{{template "error" ($.Error "edit-item" "product_id")}}
-			<label>Quantity
-				<input type="number" name="quantity" min="1" required x-model="edit.quantity">
-			</label>
+			{{template "quantity" (quantity "" "edit.quantity")}}
 			{{template "error" ($.Error "edit-item" "quantity")}}
 			{{template "dialog-buttons" "Update"}}
 		</form>
@@ -65,9 +63,7 @@
 			</select>
 		</label>
 		{{template "error" ($.Error "add-item" "product_id")}}
-		<label>Quantity
-			<input type="number" name="quantity" min="1" required value="{{$.Value "add-item" "quantity" "1"}}">
-		</label>
+		{{template "quantity" (quantity ($.Value "add-item" "quantity" "1") "")}}
 		{{template "error" ($.Error "add-item" "quantity")}}
 		{{if $.Quick}}
 		<p class="muted">Not in the catalog?
@@ -88,9 +84,7 @@
 		<input type="hidden" name="dialog" value="quick-create">
 		<input type="hidden" name="shoplist_id" value="{{$.Shoplist.ID}}">
 		{{template "product-fields" (fields $ "quick-create" false)}}
-		<label>Quantity
-			<input type="number" name="quantity" min="1" required value="{{$.Value "quick-create" "quantity" "1"}}">
-		</label>
+		{{template "quantity" (quantity ($.Value "quick-create" "quantity" "1") "")}}
 		{{template "error" ($.Error "quick-create" "quantity")}}
 		{{template "dialog-buttons" "Create & add"}}
 	</form>
@@ -105,7 +99,7 @@
 {{template "error" ($page.Error $dialog "name")}}
 <div class="row">
 	<label>Size
-		<input type="number" name="size" min="0" required value="{{$page.Value $dialog "size" ""}}" {{if .Model}}x-model="product.size"{{end}}>
+		<input type="number" inputmode="numeric" pattern="[0-9]*" name="size" min="0" required value="{{$page.Value $dialog "size" ""}}" {{if .Model}}x-model="product.size"{{end}}>
 	</label>
 	<label>Unit
 		{{$size_type := $page.Value $dialog "size_type" ""}}
@@ -136,6 +130,18 @@
 	<pre x-ref="output">{{.Formatted}}</pre>
 </section>
 {{end}}
+{{end}}
+
+{{define "quantity"}}
+<div class="field" x-data>
+	<span>Quantity</span>
+	<div class="stepper">
+		<button type="button" class="icon" aria-label="Decrease quantity" @click="$refs.input.stepDown(); $refs.input.dispatchEvent(new Event('input'))">−</button>
+		<input type="number" inputmode="numeric" pattern="[0-9]*" name="quantity" min="1" required aria-label="Quantity" x-ref="input"
+			{{if .Model}}x-model="{{.Model}}"{{else}}value="{{.Value}}"{{end}}>
+		<button type="button" class="icon" aria-label="Increase quantity" @click="$refs.input.stepUp(); $refs.input.dispatchEvent(new Event('input'))">+</button>
+	</div>
+</div>
 {{end}}
 
 {{define "dialog-buttons"}}

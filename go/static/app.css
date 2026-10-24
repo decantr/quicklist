@@ -32,6 +32,10 @@
 	box-sizing: border-box;
 }
 
+html {
+	touch-action: manipulation;
+}
+
 body {
 	margin: 0;
 	background: var(--background);
@@ -229,12 +233,42 @@ label {
 
 input, select {
 	font: inherit;
+	font-size: 16px;
 	color: inherit;
 	background: var(--background);
 	border: 1px solid var(--border);
 	border-radius: var(--radius);
 	padding: 0.5rem 0.625rem;
 	width: 100%;
+}
+
+.field {
+	display: flex;
+	flex-direction: column;
+	gap: 0.25rem;
+	font-size: 0.875rem;
+	font-weight: 500;
+}
+
+.stepper {
+	display: flex;
+	gap: 0.5rem;
+}
+
+.stepper input {
+	text-align: center;
+	-moz-appearance: textfield;
+}
+
+.stepper input::-webkit-inner-spin-button,
+.stepper input::-webkit-outer-spin-button {
+	-webkit-appearance: none;
+	margin: 0;
+}
+
+.stepper .icon {
+	flex: none;
+	font-size: 1.25rem;
 }
 
 .page-header select {

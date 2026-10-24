@@ -77,8 +77,16 @@ type ProductFields struct {
 	Model  bool
 }
 
+type QuantityField struct {
+	Value string
+	Model string
+}
+
 var template_funcs = template.FuncMap{
 	"categoryLabel": categoryLabel,
+	"quantity": func(value, model string) QuantityField {
+		return QuantityField{Value: value, Model: model}
+	},
 	"fields": func(page PageData, dialog string, model bool) ProductFields {
 		return ProductFields{Page: page, Dialog: dialog, Model: model}
 	},
