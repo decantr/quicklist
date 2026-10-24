@@ -1,0 +1,14 @@
+# Expose on the tailnet with: tailscale serve --bg --https=8443 http://127.0.0.1:8080
+[Unit]
+Description=Quick List
+After=network.target
+
+[Service]
+User=quicklist
+Environment=QUICKLIST_ADDR=127.0.0.1:8080
+Environment=QUICKLIST_DB=/var/lib/quicklist/database.sqlite
+ExecStart=/usr/local/bin/quicklist
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target

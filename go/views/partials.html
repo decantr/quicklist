@@ -1,0 +1,148 @@
+{{define "items"}}
+<section class="card" x-data="{edit: {id: $el.dataset.id, name: $el.dataset.name, quantity: $el.dataset.quantity}}"
+	data-id="{{$.Value "edit-item" "product_id" ""}}"
+	data-name="{{$.Value "edit-item" "product_name" ""}}"
+	data-quantity="{{$.Value "edit-item" "quantity" ""}}">
+	<table>
+		<thead>
+			<tr><th class="narrow">Qty</th><th>Product</th><th>Category</th><th>Size</th><th class="narrow"></th></tr>
+		</thead>
+		<tbody>
+			{{range .Items}}
+			<tr>
+				<td class="narrow">{{.Quantity}}</td>
+				<td class="strong">{{.Name}}</td>
+				<td class="muted">{{categoryLabel .Category}}</td>
+				<td>{{.Size}} <span class="muted">{{.SizeType}}</span></td>
+				<td class="narrow actions">
+					<button type="button" class="ghost small" data-id="{{.ID}}" data-name="{{.Name}}" data-quantity="{{.Quantity}}"
+						@click="edit = {...$el.dataset}; $refs.edit.showModal()">Edit</button>
+					<form method="post" action="/shoplists/{{$.Shoplist.ID}}/items/{{.ID}}/remove"
+						hx-confirm="Are you sure you want to remove this product from the list?">
+						<input type="hidden" name="return" value="{{$.Path}}">
+						<button class="ghost small danger">Remove</button>
+					</form>
+				</td>
+			</tr>
+			{{else}}
+			<tr><td colspan="5" class="empty">No products in this shopping list.</td></tr>
+			{{end}}
+		</tbody>
+	</table>
+
+	<dialog x-ref="edit" {{if $.Open "edit-item"}}x-init="$el.showModal()"{{end}}>
+		<form method="post" action="/shoplists/{{$.Shoplist.ID}}/items/update" class="stack">
+			<h2>Edit quantity</h2>
+			<p class="muted" x-text="edit.name"></p>
+			<input type="hidden" name="return" value="{{$.Path}}">
+			<input type="hidden" name="dialog" value="edit-item">
+			<input type="hidden" name="product_id" :value="edit.id">
+			<input type="hidden" name="product_name" :value="edit.name">
+			{{template "error" ($.Error "edit-item" "product_id")}}
+			<label>Quantity
+				<input type="number" name="quantity" min="1" required x-model="edit.quantity">
+			</label>
+			{{template "error" ($.Error "edit-item" "quantity")}}
+			{{template "dialog-buttons" "Update"}}
+		</form>
+	</dialog>
+</section>
+{{end}}
+
+{{define "add-item-dialog"}}
+<dialog id="add-item" {{if $.Open "add-item"}}x-data x-init="$el.showModal()"{{end}}>
+	<form method="post" action="/shoplists/{{$.Shoplist.ID}}/items" class="stack">
+		<h2>Add product</h2>
+		<input type="hidden" name="return" value="{{$.Path}}">
+		<input type="hidden" name="dialog" value="add-item">
+		<label>Product
+			<select name="product_id" required>
+				<option value="">Select a product</option>
+				{{$selected := $.Value "add-item" "product_id" ""}}
+				{{range $.Options}}
+				<option value="{{.ID}}" {{if eq (print .ID) $selected}}selected{{end}}>{{.Name}} ({{.Size}} {{.SizeType}})</option>
+				{{end}}
+			</select>
+		</label>
+		{{template "error" ($.Error "add-item" "product_id")}}
+		<label>Quantity
+			<input type="number" name="quantity" min="1" required value="{{$.Value "add-item" "quantity" "1"}}">
+		</label>
+		{{template "error" ($.Error "add-item" "quantity")}}
+		{{if $.Quick}}
+		<p class="muted">Not in the catalog?
+			<button type="button" class="link" onclick="this.closest('dialog').close(); document.getElementById('quick-create').showModal()">Create a new product</button>
+		</p>
+		{{end}}
+		{{template "dialog-buttons" "Add"}}
+	</form>
+</dialog>
+{{end}}
+
+{{define "quick-create-dialog"}}
+<dialog id="quick-create" {{if $.Open "quick-create"}}x-data x-init="$el.showModal()"{{end}}>
+	<form method="post" action="/products" class="stack">
+		<h2>New product</h2>
+		<p class="muted">Creates the product and adds it to this list.</p>
+		<input type="hidden" name="return" value="{{$.Path}}">
+		<input type="hidden" name="dialog" value="quick-create">
+		<input type="hidden" name="shoplist_id" value="{{$.Shoplist.ID}}">
+		{{template "product-fields" (fields $ "quick-create" false)}}
+		<label>Quantity
+			<input type="number" name="quantity" min="1" required value="{{$.Value "quick-create" "quantity" "1"}}">
+		</label>
+		{{template "error" ($.Error "quick-create" "quantity")}}
+		{{template "dialog-buttons" "Create & add"}}
+	</form>
+</dialog>
+{{end}}
+
+{{define "product-fields"}}
+{{$page := .Page}}{{$dialog := .Dialog}}
+<label>Name
+	<input type="text" name="name" maxlength="255" required value="{{$page.Value $dialog "name" ""}}" {{if .Model}}x-model="product.name"{{end}}>
+</label>
+{{template "error" ($page.Error $dialog "name")}}
+<div class="row">
+	<label>Size
+		<input type="number" name="size" min="0" required value="{{$page.Value $dialog "size" ""}}" {{if .Model}}x-model="product.size"{{end}}>
+	</label>
+	<label>Unit
+		{{$size_type := $page.Value $dialog "size_type" ""}}
+		<select name="size_type" required {{if .Model}}x-model="product.size_type"{{end}}>
+			<option value="">Select</option>
+			{{range $page.SizeTypes}}<option value="{{.}}" {{if eq . $size_type}}selected{{end}}>{{.}}</option>{{end}}
+		</select>
+	</label>
+</div>
+{{template "error" ($page.Error $dialog "size")}}
+{{template "error" ($page.Error $dialog "size_type")}}
+<label>Category
+	{{$category := $page.Value $dialog "category" "produce"}}
+	<select name="category" required {{if .Model}}x-model="product.category"{{end}}>
+		{{range $page.Categories}}<option value="{{.}}" {{if eq . $category}}selected{{end}}>{{categoryLabel .}}</option>{{end}}
+	</select>
+</label>
+{{template "error" ($page.Error $dialog "category")}}
+{{end}}
+
+{{define "formatted"}}
+{{if .Items}}
+<section class="card" x-data>
+	<div class="card-header">
+		<h2>Formatted List</h2>
+		<button type="button" class="small" @click="navigator.clipboard.writeText($refs.output.innerText.trim()); toast('Copied to clipboard')">Copy</button>
+	</div>
+	<pre x-ref="output">{{.Formatted}}</pre>
+</section>
+{{end}}
+{{end}}
+
+{{define "dialog-buttons"}}
+<div class="buttons">
+	<button type="button" class="ghost" onclick="this.closest('dialog').close()">Cancel</button>
+	<button type="submit" class="primary">{{.}}</button>
+</div>
+{{end}}
+
+{{define "error"}}{{if .}}<p class="error">{{.}}</p>{{end}}{{end}}
