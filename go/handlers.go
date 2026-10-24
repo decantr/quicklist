@@ -124,6 +124,7 @@ func (a *App) routes(static_files fs.FS) {
 	a.mux.Handle("GET /static/", http.StripPrefix("/static/", http.FileServerFS(static_files)))
 	a.mux.HandleFunc("GET /sw.js", serveFile(static_files, "sw.js", "text/javascript"))
 	a.mux.HandleFunc("GET /manifest.webmanifest", serveFile(static_files, "manifest.webmanifest", "application/manifest+json"))
+	a.mux.HandleFunc("GET /favicon.ico", serveFile(static_files, "favicon.svg", "image/svg+xml"))
 	a.mux.HandleFunc("GET /up", func(w http.ResponseWriter, r *http.Request) { fmt.Fprint(w, "OK") })
 
 	a.mux.HandleFunc("GET /{$}", func(w http.ResponseWriter, r *http.Request) {

@@ -72,6 +72,9 @@ h2 {
 }
 
 .brand {
+	display: flex;
+	align-items: center;
+	gap: 0.5rem;
 	font-weight: 700;
 	text-decoration: none;
 }

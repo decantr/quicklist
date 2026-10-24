@@ -712,7 +712,7 @@ func TestExternalReturnPathIsIgnored(t *testing.T) {
 func TestStaticAssetsAreServed(t *testing.T) {
 	ta := newTestApp(t)
 
-	for _, path := range []string{"/static/app.css", "/static/htmx.min.js", "/static/alpine.min.js", "/sw.js", "/manifest.webmanifest", "/up"} {
+	for _, path := range []string{"/static/app.css", "/static/htmx.min.js", "/static/alpine.min.js", "/sw.js", "/manifest.webmanifest", "/up", "/favicon.ico", "/static/favicon.svg", "/static/icon-192.png", "/static/icon-512.png", "/static/apple-touch-icon.png"} {
 		assertStatus(t, ta.get(path), http.StatusOK)
 	}
 }

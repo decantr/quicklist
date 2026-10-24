@@ -6,6 +6,8 @@
 	<meta name="color-scheme" content="light dark">
 	<meta name="htmx-config" content='{"responseHandling":[{"code":"204","swap":false},{"code":"[23]..","swap":true},{"code":"422","swap":true},{"code":"[45]..","swap":false,"error":true}]}'>
 	<title>{{.Title}} · Quick List</title>
+	<link rel="icon" href="/static/favicon.svg" type="image/svg+xml">
+	<link rel="apple-touch-icon" href="/static/apple-touch-icon.png">
 	<link rel="manifest" href="/manifest.webmanifest">
 	<link rel="stylesheet" href="/static/app.css">
 	<script src="/static/htmx.min.js" defer></script>
@@ -14,7 +16,7 @@
 </head>
 <body hx-boost="true">
 	<header class="nav">
-		<a class="brand" href="/dashboard">Quick List</a>
+		<a class="brand" href="/dashboard"><img src="/static/favicon.svg" alt="" width="24" height="24">Quick List</a>
 		<nav>
 			<a href="/dashboard" {{if eq .Title "Dashboard"}}aria-current="page"{{end}}>Dashboard</a>
 			<a href="/shoplists" {{if or (eq .Title "Shop Lists") (eq .Title "Shopping List")}}aria-current="page"{{end}}>Shop Lists</a>

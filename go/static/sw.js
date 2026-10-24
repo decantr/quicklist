@@ -1,10 +1,11 @@
-const cache_name = "quicklist-v1";
+const cache_name = "quicklist-v3";
 const precache_urls = [
 	"/dashboard",
 	"/static/app.css",
 	"/static/app.js",
 	"/static/htmx.min.js",
 	"/static/alpine.min.js",
+	"/static/favicon.svg",
 ];
 
 self.addEventListener("install", (event) => {
