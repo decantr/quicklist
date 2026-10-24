@@ -5,15 +5,15 @@
 	data-quantity="{{$.Value "edit-item" "quantity" ""}}">
 	<table>
 		<thead>
-			<tr><th class="narrow">Qty</th><th>Product</th><th>Category</th><th>Size</th><th class="narrow"></th></tr>
+			<tr><th class="narrow">Qty</th><th>Product</th><th class="wide">Category</th><th class="wide">Size</th><th class="narrow"></th></tr>
 		</thead>
 		<tbody>
 			{{range .Items}}
 			<tr>
 				<td class="narrow">{{.Quantity}}</td>
-				<td class="strong">{{.Name}}</td>
-				<td class="muted">{{categoryLabel .Category}}</td>
-				<td>{{.Size}} <span class="muted">{{.SizeType}}</span></td>
+				<td class="name"><span class="strong">{{.Name}}</span><div class="meta">{{categoryLabel .Category}} · {{.Size}} {{.SizeType}}</div></td>
+				<td class="muted wide">{{categoryLabel .Category}}</td>
+				<td class="wide">{{.Size}} <span class="muted">{{.SizeType}}</span></td>
 				<td class="narrow actions">
 					<button type="button" class="ghost icon" title="Edit" aria-label="Edit" data-id="{{.ID}}" data-name="{{.Name}}" data-quantity="{{.Quantity}}"
 						@click="edit = {...$el.dataset}; $refs.edit.showModal()">{{template "icon-edit"}}</button>

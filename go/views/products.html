@@ -36,15 +36,15 @@
 	data-category="{{.Value "edit-product" "category" ""}}">
 	<table>
 		<thead>
-			<tr><th>Name</th><th>Category</th><th>Size</th><th>Created At</th><th class="narrow"></th></tr>
+			<tr><th>Name</th><th class="wide">Category</th><th class="wide">Size</th><th class="wide">Created At</th><th class="narrow"></th></tr>
 		</thead>
 		<tbody>
 			{{range .Products}}
 			<tr>
-				<td class="strong">{{.Name}}</td>
-				<td class="muted">{{categoryLabel .Category}}</td>
-				<td>{{.Size}} <span class="muted">{{.SizeType}}</span></td>
-				<td class="muted">{{displayTimestamp .CreatedAt}}</td>
+				<td class="name"><span class="strong">{{.Name}}</span><div class="meta">{{categoryLabel .Category}} · {{.Size}} {{.SizeType}}</div></td>
+				<td class="muted wide">{{categoryLabel .Category}}</td>
+				<td class="wide">{{.Size}} <span class="muted">{{.SizeType}}</span></td>
+				<td class="muted wide">{{displayTimestamp .CreatedAt}}</td>
 				<td class="narrow actions">
 					<button type="button" class="ghost icon" title="Edit" aria-label="Edit"
 						data-id="{{.ID}}" data-name="{{.Name}}" data-size="{{.Size}}" data-size_type="{{.SizeType}}" data-category="{{.Category}}"
