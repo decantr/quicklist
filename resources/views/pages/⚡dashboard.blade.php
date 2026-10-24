@@ -13,7 +13,7 @@ new class extends Component {
 		<livewire:dashboard.stats.total-items lazy />
 		<livewire:dashboard.stats.shoplist-size-over-time lazy />
 	</div>
-	<div class="relative h-full flex-1 overflow-hidden">
+	<div class="relative h-full flex-1 overflow-hidden group">
 		<livewire:dashboard.latest-shoplist/>
 	</div>
 </div>

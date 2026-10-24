@@ -21,9 +21,9 @@ class extends Component {
 };
 ?>
 
-<flux:card class="relative group h-full flex flex-col">
+<div class="flex h-full flex-col gap-4">
 	@if ($this->latestShoplist)
-		<div class="flex items-center justify-between mb-4">
+		<div class="flex items-center justify-between">
 			<flux:heading size="lg">
 				{{ __('Latest Shopping List') }}: {{ $this->latestShoplist->date->format('M d, Y') }}
 			</flux:heading>
@@ -47,19 +47,21 @@ class extends Component {
 			</div>
 		</div>
 
-		<livewire:shoplist.products-table
-			:shoplist="$this->latestShoplist"
-		/>
+		<flux:card class="relative h-full flex flex-col">
+			<livewire:shoplist.products-table
+				:shoplist="$this->latestShoplist"
+			/>
 
-		@if ($this->latestShoplist->products->isNotEmpty())
-			<pre class="formatted-output hidden">{{ $this->latestShoplist->formatted_list }}</pre>
-		@endif
+			@if ($this->latestShoplist->products->isNotEmpty())
+				<pre class="formatted-output hidden">{{ $this->latestShoplist->formatted_list }}</pre>
+			@endif
 
-		<livewire:shoplist.add-product :shoplist="$this->latestShoplist"/>
-		<livewire:shoplist.edit-product :shoplist="$this->latestShoplist"/>
+			<livewire:shoplist.add-product :shoplist="$this->latestShoplist"/>
+			<livewire:shoplist.edit-product :shoplist="$this->latestShoplist"/>
+		</flux:card>
 	@else
 		<flux:text class="italic">
 			{{ __('No shopping lists found.') }}
 		</flux:text>
 	@endif
-</flux:card>
+</div>
