@@ -19,10 +19,10 @@
 				<td>{{.ProductCount}}</td>
 				<td class="muted">{{displayTimestamp .CreatedAt}}</td>
 				<td class="narrow actions">
-					<a class="button ghost small" href="/shoplists/{{.ID}}">Edit</a>
+					<a class="button ghost icon" href="/shoplists/{{.ID}}" title="Edit" aria-label="Edit">{{template "icon-edit"}}</a>
 					<form method="post" action="/shoplists/{{.ID}}/delete" hx-confirm="Are you sure you want to delete this shopping list?">
 						<input type="hidden" name="return" value="/shoplists">
-						<button class="ghost small danger">Delete</button>
+						<button class="ghost icon danger" title="Delete" aria-label="Delete">{{template "icon-trash"}}</button>
 					</form>
 				</td>
 			</tr>

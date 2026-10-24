@@ -292,6 +292,32 @@ button:hover, .button:hover {
 	font-size: 0.8125rem;
 }
 
+.icon {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	width: 2.5rem;
+	height: 2.5rem;
+	padding: 0;
+	vertical-align: middle;
+}
+
+.icon svg {
+	width: 1.25rem;
+	height: 1.25rem;
+}
+
+.actions > * + * {
+	margin-left: 0.5rem;
+}
+
+@media (pointer: coarse) {
+	.icon {
+		width: 2.75rem;
+		height: 2.75rem;
+	}
+}
+
 .danger {
 	color: var(--danger);
 }

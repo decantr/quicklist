@@ -46,13 +46,13 @@
 				<td>{{.Size}} <span class="muted">{{.SizeType}}</span></td>
 				<td class="muted">{{displayTimestamp .CreatedAt}}</td>
 				<td class="narrow actions">
-					<button type="button" class="ghost small"
+					<button type="button" class="ghost icon" title="Edit" aria-label="Edit"
 						data-id="{{.ID}}" data-name="{{.Name}}" data-size="{{.Size}}" data-size_type="{{.SizeType}}" data-category="{{.Category}}"
-						@click="product = {...$el.dataset}; $refs.edit.showModal()">Edit</button>
+						@click="product = {...$el.dataset}; $refs.edit.showModal()">{{template "icon-edit"}}</button>
 					<form method="post" action="/products/{{.ID}}/delete"
 						hx-confirm="Are you sure you want to delete this product? Once this product is deleted, it will be permanently removed.">
 						<input type="hidden" name="return" value="{{$.Path}}">
-						<button class="ghost small danger">Delete</button>
+						<button class="ghost icon danger" title="Delete" aria-label="Delete">{{template "icon-trash"}}</button>
 					</form>
 				</td>
 			</tr>
