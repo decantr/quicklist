@@ -3,6 +3,7 @@ package main
 import (
 	"database/sql"
 	"io/fs"
+	"net"
 	"net/http"
 	"net/http/httptest"
 	"net/url"
@@ -831,6 +832,21 @@ func TestStaticAssetsAreServed(t *testing.T) {
 
 	for _, path := range []string{"/static/htmx.min.js", "/static/alpine.min.js", "/sw.js", "/manifest.webmanifest", "/up", "/favicon.ico", "/static/favicon.svg", "/static/icon-192.png", "/static/icon-512.png", "/static/apple-touch-icon.png"} {
 		assertStatus(t, ta.get(path), http.StatusOK)
+	}
+}
+
+func TestHealthCheck(t *testing.T) {
+	server := httptest.NewServer(newTestApp(t).app)
+	defer server.Close()
+	_, port, _ := net.SplitHostPort(server.Listener.Addr().String())
+
+	if err := checkHealth("0.0.0.0:" + port); err != nil {
+		t.Fatalf("healthy server: %v", err)
+	}
+
+	server.Close()
+	if err := checkHealth("127.0.0.1:" + port); err == nil {
+		t.Fatal("stopped server passed the health check")
 	}
 }
 
