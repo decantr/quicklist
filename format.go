@@ -5,7 +5,7 @@ import (
 	"strings"
 )
 
-// formattedList groups by category in order of first appearance, matching Shoplist::formatted_list.
+// formattedList groups by category in order of first appearance.
 func formattedList(items []Item) string {
 	var category_order []string
 	lines_by_category := map[string][]string{}
