@@ -20,6 +20,7 @@ type App struct {
 	store     *Store
 	templates map[string]*template.Template
 	mux       *http.ServeMux
+	handler   http.Handler
 }
 
 type Flash struct {
@@ -134,6 +135,7 @@ func newApp(store *Store) (*App, error) {
 		return nil, err
 	}
 	app.routes(static_files)
+	app.handler = http.NewCrossOriginProtection().Handler(app.mux)
 
 	return app, nil
 }
@@ -164,7 +166,7 @@ func (a *App) routes(static_files fs.FS) {
 }
 
 func (a *App) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	a.mux.ServeHTTP(w, r)
+	a.handler.ServeHTTP(w, r)
 }
 
 func serveFile(files fs.FS, name, content_type string) http.HandlerFunc {

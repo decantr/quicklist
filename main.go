@@ -28,7 +28,7 @@ func main() {
 
 	server := &http.Server{
 		Addr:              *addr,
-		Handler:           http.NewCrossOriginProtection().Handler(app),
+		Handler:           app,
 		ReadHeaderTimeout: 10 * time.Second,
 	}
 

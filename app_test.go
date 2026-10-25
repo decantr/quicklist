@@ -761,6 +761,20 @@ func TestFlashIsShownOnce(t *testing.T) {
 	t.Fatal("flash cookie was not cleared")
 }
 
+func TestCrossSiteFormPostIsRejected(t *testing.T) {
+	ta := newTestApp(t)
+	request := httptest.NewRequest(http.MethodPost, "/shoplists", nil)
+	request.Header.Set("Sec-Fetch-Site", "cross-site")
+	recorder := httptest.NewRecorder()
+
+	ta.app.ServeHTTP(recorder, request)
+
+	assertStatus(t, recorder, http.StatusForbidden)
+	if count := ta.queryInt(`SELECT COUNT(*) FROM shoplists`); count != 0 {
+		t.Fatalf("lists = %d", count)
+	}
+}
+
 func TestExternalReturnPathIsIgnored(t *testing.T) {
 	ta := newTestApp(t)
 
