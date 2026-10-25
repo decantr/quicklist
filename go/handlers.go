@@ -109,8 +109,18 @@ var template_funcs = template.FuncMap{
 func newApp(store *Store) (*App, error) {
 	app := &App{store: store, templates: map[string]*template.Template{}, mux: http.NewServeMux()}
 
+	stylesheet, err := fs.ReadFile(embedded_files, "static/app.css")
+	if err != nil {
+		return nil, err
+	}
+	// Inlined so the first paint is already styled; a linked stylesheet flashed unstyled content.
+	funcs := template.FuncMap{"styles": func() template.CSS { return template.CSS(stylesheet) }}
+	for name, function := range template_funcs {
+		funcs[name] = function
+	}
+
 	for _, page := range []string{"dashboard", "shoplists", "shoplist", "products"} {
-		parsed, err := template.New("layout.html").Funcs(template_funcs).ParseFS(
+		parsed, err := template.New("layout.html").Funcs(funcs).ParseFS(
 			embedded_files, "views/layout.html", "views/partials.html", "views/"+page+".html",
 		)
 		if err != nil {

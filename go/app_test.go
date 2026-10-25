@@ -710,6 +710,15 @@ func TestExternalReturnPathIsIgnored(t *testing.T) {
 	assertRedirect(t, recorder, "/shoplists")
 }
 
+func TestStylesheetIsInlined(t *testing.T) {
+	ta := newTestApp(t)
+
+	body := ta.get("/dashboard").Body.String()
+
+	assertContains(t, body, "<style>:root {")
+	assertNotContains(t, body, `href="/static/app.css"`)
+}
+
 func TestStaticAssetsAreServed(t *testing.T) {
 	ta := newTestApp(t)
 

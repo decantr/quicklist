@@ -1,7 +1,6 @@
-const cache_name = "quicklist-v4";
+const cache_name = "quicklist-v5";
 const precache_urls = [
 	"/dashboard",
-	"/static/app.css",
 	"/static/app.js",
 	"/static/htmx.min.js",
 	"/static/alpine.min.js",
@@ -28,21 +27,22 @@ self.addEventListener("fetch", (event) => {
 	}
 
 	if (request.method === "GET") {
-		event.respondWith(networkFirst(request));
+		event.respondWith(networkFirst(event, request));
 		return;
 	}
 
 	// Following htmx form posts here lets the page they redirect to be cached; plain navigations can't take a redirected response.
 	if (request.mode !== "navigate") {
-		event.respondWith(fetch(request).then(rememberRedirectTarget));
+		event.respondWith(fetch(request).then((response) => rememberRedirectTarget(event, response)));
 	}
 });
 
-async function networkFirst(request) {
+// Cache writes run in the background so they never delay the page.
+async function networkFirst(event, request) {
 	try {
 		const response = await fetch(request);
 		if (response.ok && !response.redirected) {
-			await remember(request.url, response.clone());
+			event.waitUntil(remember(request.url, response.clone()));
 		}
 		return response;
 	} catch (error) {
@@ -54,9 +54,9 @@ async function networkFirst(request) {
 	}
 }
 
-async function rememberRedirectTarget(response) {
+async function rememberRedirectTarget(event, response) {
 	if (response.ok && response.redirected) {
-		await remember(response.url, response.clone());
+		event.waitUntil(remember(response.url, response.clone()));
 	}
 	return response;
 }
