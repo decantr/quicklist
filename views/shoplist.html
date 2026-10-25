@@ -1,0 +1,32 @@
+{{define "content"}}
+<div class="page-header">
+	<div class="title">
+		<h1>
+			Shopping List: {{displayDate .Shoplist.Date}}
+			<button type="button" class="ghost icon" onclick="document.getElementById('edit-date').showModal()" title="Edit date" aria-label="Edit date">{{template "icon-edit"}}</button>
+		</h1>
+	</div>
+	<div class="buttons">
+		<button type="button" class="primary" onclick="document.getElementById('add-item').showModal()">Add Product</button>
+		<a class="button ghost" href="/shoplists">Back to lists</a>
+	</div>
+</div>
+
+<dialog id="edit-date" {{if .Open "edit-date"}}x-data x-init="$el.showModal()"{{end}}>
+	<form method="post" action="/shoplists/{{.Shoplist.ID}}/date" class="stack">
+		<h2>Edit Date</h2>
+		<p class="muted">Update the date for this shopping list.</p>
+		<input type="hidden" name="return" value="{{.Path}}">
+		<input type="hidden" name="dialog" value="edit-date">
+		<label>Date
+			<input type="date" name="date" required value="{{.Value "edit-date" "date" .Shoplist.Date}}">
+		</label>
+		{{template "error" (.Error "edit-date" "date")}}
+		{{template "dialog-buttons" "Update Date"}}
+	</form>
+</dialog>
+
+{{template "items" .}}
+{{template "formatted" .}}
+{{template "add-item-dialog" .}}
+{{end}}

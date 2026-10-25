@@ -1,0 +1,32 @@
+{{define "content"}}
+<div class="page-header">
+	<div class="title">
+		{{if .Shoplist}}
+		<h1>Latest Shopping List: {{displayDate .Shoplist.Date}}</h1>
+		{{else}}
+		<h1>Dashboard</h1>
+		{{end}}
+		{{if .Items}}
+		<button type="button" x-data @click="navigator.clipboard.writeText(document.getElementById('formatted-list').innerText.trim()); toast('Copied to clipboard')">Copy Text</button>
+		{{end}}
+	</div>
+	<div class="buttons">
+		{{if .Shoplist}}
+		<button type="button" class="primary" onclick="document.getElementById('add-item').showModal()">Add Product</button>
+		{{end}}
+		<form method="post" action="/shoplists" hx-confirm="Create a new list from the latest one?">
+			<input type="hidden" name="return" value="/dashboard">
+			<button>New list</button>
+		</form>
+	</div>
+</div>
+
+{{if .Shoplist}}
+{{template "items" .}}
+{{template "formatted" .}}
+{{template "add-item-dialog" .}}
+{{template "quick-create-dialog" .}}
+{{else}}
+<section class="card empty">No shopping lists found.</section>
+{{end}}
+{{end}}

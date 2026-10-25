@@ -1,62 +1,47 @@
 #!/bin/sh
 # single entry point for setting up this project
+# usage: setup.sh [optional database to migrate in]
 
-# helper functions ============================================================
+. ./_scripts/common.sh
 
-_curdate() {
-	date -u "+%F %T"
-}
+DATA_DIR="/var/lib/quicklist"
+DATABASE="$DATA_DIR/database.sqlite"
 
-_info() {
-	echo ":: $(_curdate) : $1"
-}
-
-_error() {
-	echo "!! $(_curdate) : $1"
-	exit 1
-}
-
-# root check ==================================================================
-if [ "$(id -u)" -ne 0 ]; then
-	_info "Asking for sudo"
-
-	if ! sudo -v; then
-		_error "Sudo failed"
-	fi
-fi
-
-# os dependencies =============================================================
-if [ -f /etc/os-release ]; then
-	. /etc/os-release
-else
-	_error "Unknown Distro"
-fi
-
-case $ID in
-"alpine") sh ./_scripts/install-alpine.sh ;;
-"arch") sh ./_scripts/install-arch.sh ;;
-"ubuntu")
-	case $VERSION_ID in
-	"26.04") sh ./_scripts/install-ubuntu-2604.sh ;;
-	*) _error "Unknown ubuntu version" ;;
+# user ========================================================================
+if ! id quicklist >/dev/null 2>&1; then
+	_info "Creating user quicklist"
+	case $INIT in
+	"openrc") $SUDO adduser -S -D -H -h "$DATA_DIR" -s /sbin/nologin quicklist ;;
+	"systemd") $SUDO useradd --system --home-dir "$DATA_DIR" --shell /usr/sbin/nologin quicklist ;;
 	esac
+fi
+
+# database ====================================================================
+$SUDO mkdir -p "$DATA_DIR"
+if [ -n "$1" ] && [ ! -f "$DATABASE" ]; then
+	$SUDO sh ./_scripts/migrate-db.sh "$1" "$DATABASE" || _error "Database migration failed"
+fi
+$SUDO chown -R quicklist: "$DATA_DIR"
+
+# binary ======================================================================
+_install
+
+# service =====================================================================
+_info "Installing $INIT service"
+case $INIT in
+"openrc")
+	$SUDO install -m 755 deploy/quicklist.openrc /etc/init.d/quicklist
+	$SUDO rc-update add quicklist default
 	;;
-*) _error "Unknown Distro" ;;
+"systemd")
+	$SUDO install -m 644 deploy/quicklist.service /etc/systemd/system/quicklist.service
+	$SUDO systemctl daemon-reload
+	$SUDO systemctl enable quicklist
+	;;
 esac
-
-# file setup ==================================================================
-cp -n .env.example .env
-touch database/database.sqlite
-
-# dependencies ================================================================
-composer install --no-dev --optimize-autoloader --classmap-authoritative
-deno install --minimum-dependency-age=P1W # --prod AFTER deno 2.8
-
-# php setup ===================================================================
-php artisan key:generate
-php artisan migrate --force
-php artisan storage:link
+_restart
 
 # finish ======================================================================
+_info "Expose it on the tailnet with: tailscale serve --bg http://127.0.0.1:8080"
 _info 'Done'
 exit 0

@@ -1,15 +1,11 @@
 #!/bin/sh
-# update the project on the server
+# install the latest release binary on the server
 
-# get latest version
-git pull origin master # || git reset --hard origin/master
+. ./_scripts/common.sh
 
-# dependency update
-composer install --no-dev --no-interaction --prefer-dist --optimize-autoloader
-deno install # --prod AFTER deno 2.8
+if _install; then
+	_restart
+fi
 
-# migrations
-php artisan migrate --force
-
-# finish
-make build
+_info 'Done'
+exit 0

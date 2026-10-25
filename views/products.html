@@ -1,0 +1,79 @@
+{{define "content"}}
+<div class="page-header">
+	<div class="title">
+		<h1>All Products</h1>
+	</div>
+	<div class="buttons">
+		<form method="get" action="/products">
+			<select name="category" onchange="this.form.requestSubmit()" aria-label="Category">
+				<option value="">All categories</option>
+				{{range .Categories}}<option value="{{.}}" {{if eq . $.Category}}selected{{end}}>{{categoryLabel .}}</option>{{end}}
+			</select>
+			<noscript><button>Filter</button></noscript>
+		</form>
+		<button type="button" class="primary" onclick="document.getElementById('create-product').showModal()">Create product</button>
+	</div>
+</div>
+
+<dialog id="create-product" {{if .Open "create-product"}}x-data x-init="$el.showModal()"{{end}}>
+	<form method="post" action="/products" class="stack">
+		<h2>Create new product</h2>
+		<p class="muted">Add a new product to your inventory.</p>
+		<input type="hidden" name="return" value="{{.Path}}">
+		<input type="hidden" name="dialog" value="create-product">
+		{{template "product-fields" (fields . "create-product" false)}}
+		<div class="buttons">
+			<button type="button" class="ghost" onclick="this.closest('dialog').close()">Cancel</button>
+			<button type="submit" name="another" value="1">Create &amp; Add Another</button>
+			<button type="submit" class="primary">Create</button>
+		</div>
+	</form>
+</dialog>
+
+<section class="card" x-data="{product: {id: $el.dataset.id, name: $el.dataset.name, size: $el.dataset.size, size_type: $el.dataset.size_type, category: $el.dataset.category}}"
+	data-id="{{.Value "edit-product" "id" ""}}"
+	data-name="{{.Value "edit-product" "name" ""}}"
+	data-size="{{.Value "edit-product" "size" ""}}"
+	data-size_type="{{.Value "edit-product" "size_type" ""}}"
+	data-category="{{.Value "edit-product" "category" ""}}">
+	<table>
+		<thead>
+			<tr><th>Name</th><th class="wide">Category</th><th class="wide">Size</th><th class="wide">Created At</th><th class="narrow"></th></tr>
+		</thead>
+		<tbody>
+			{{range .Products}}
+			<tr>
+				<td class="name"><span class="strong">{{.Name}}</span><div class="meta">{{categoryLabel .Category}} · {{.Size}} {{.SizeType}}</div></td>
+				<td class="muted wide">{{categoryLabel .Category}}</td>
+				<td class="wide">{{.Size}} <span class="muted">{{.SizeType}}</span></td>
+				<td class="muted wide">{{displayTimestamp .CreatedAt}}</td>
+				<td class="narrow actions">
+					<button type="button" class="ghost icon" title="Edit" aria-label="Edit"
+						data-id="{{.ID}}" data-name="{{.Name}}" data-size="{{.Size}}" data-size_type="{{.SizeType}}" data-category="{{.Category}}"
+						@click="product = {...$el.dataset}; $refs.edit.showModal()">{{template "icon-edit"}}</button>
+					<form method="post" action="/products/{{.ID}}/delete"
+						hx-confirm="Are you sure you want to delete this product? Once this product is deleted, it will be permanently removed.">
+						<input type="hidden" name="return" value="{{$.Path}}">
+						<button class="ghost icon danger" title="Delete" aria-label="Delete">{{template "icon-trash"}}</button>
+					</form>
+				</td>
+			</tr>
+			{{else}}
+			<tr><td colspan="5" class="empty">No products found.</td></tr>
+			{{end}}
+		</tbody>
+	</table>
+
+	<dialog x-ref="edit" {{if .Open "edit-product"}}x-init="$el.showModal()"{{end}}>
+		<form method="post" action="/products/update" class="stack">
+			<h2>Edit product</h2>
+			<p class="muted">Update product details.</p>
+			<input type="hidden" name="return" value="{{.Path}}">
+			<input type="hidden" name="dialog" value="edit-product">
+			<input type="hidden" name="id" :value="product.id">
+			{{template "product-fields" (fields . "edit-product" true)}}
+			{{template "dialog-buttons" "Update"}}
+		</form>
+	</dialog>
+</section>
+{{end}}

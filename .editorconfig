@@ -14,12 +14,7 @@ tab_width = 4
 trim_trailing_whitespace = true
 max_line_length = 80
 
-[*.php]
-quote_type = "single"
-single_quote = true
-singleQuote = true
-
-[*.{html,css,blade.php,md}]
+[*.{go,html,css,js,md}]
 max_line_length = 120
 
 [*.{yml,yaml}]
