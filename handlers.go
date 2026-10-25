@@ -675,6 +675,10 @@ func returnPath(r *http.Request, fallback string) string {
 	if !strings.HasPrefix(path, "/") || strings.HasPrefix(path, "//") || strings.HasPrefix(path, "/\\") {
 		return fallback
 	}
+	// url.Parse rejects control characters, which browsers strip, turning "/\t/host" into "//host".
+	if _, err := url.Parse(path); err != nil {
+		return fallback
+	}
 	return path
 }
 

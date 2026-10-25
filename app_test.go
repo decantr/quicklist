@@ -730,9 +730,11 @@ func TestCrossSiteFormPostIsRejected(t *testing.T) {
 func TestExternalReturnPathIsIgnored(t *testing.T) {
 	ta := newTestApp(t)
 
-	recorder := ta.post("/shoplists", url.Values{"return": {"//evil.example"}})
+	for _, path := range []string{"//evil.example", "/\\evil.example", "/\t/evil.example", "/\n/evil.example", "https://evil.example"} {
+		recorder := ta.post("/shoplists", url.Values{"return": {path}})
 
-	assertRedirect(t, recorder, "/shoplists")
+		assertRedirect(t, recorder, "/shoplists")
+	}
 }
 
 func TestStylesheetIsInlined(t *testing.T) {
