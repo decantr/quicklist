@@ -33,14 +33,30 @@ case $ID in
 *) _error "Unknown Distro" ;;
 esac
 
-command -v mise >/dev/null || _error "mise is not installed"
+command -v curl >/dev/null || _error "curl is not installed"
 
-_build() {
-	_info "Building"
-	mise trust --quiet
-	mise install
-	mise run build || _error "Build failed"
-	$SUDO install -m 755 bin/quicklist /usr/local/bin/quicklist
+case $(uname -m) in
+"x86_64") ARCH="amd64" ;;
+"aarch64") ARCH="arm64" ;;
+*) _error "Unknown architecture $(uname -m)" ;;
+esac
+
+RELEASES="https://github.com/decantr/quicklist/releases/latest/download"
+
+# returns 1 when the installed binary is already the latest release
+_install() {
+	_info "Downloading latest release for $ARCH"
+	tmp=$(mktemp -d) || _error "mktemp failed"
+	trap 'rm -rf "$tmp"' EXIT
+	curl -fsSL -o "$tmp/quicklist-linux-$ARCH" "$RELEASES/quicklist-linux-$ARCH" || _error "Download failed"
+	curl -fsSL -o "$tmp/SHA256SUMS" "$RELEASES/SHA256SUMS" || _error "Checksum download failed"
+	(cd "$tmp" && grep " quicklist-linux-$ARCH$" SHA256SUMS > CHECK && sha256sum -c CHECK >/dev/null) || _error "Checksum mismatch"
+
+	if cmp -s "$tmp/quicklist-linux-$ARCH" /usr/local/bin/quicklist; then
+		_info "Already up to date"
+		return 1
+	fi
+	$SUDO install -m 755 "$tmp/quicklist-linux-$ARCH" /usr/local/bin/quicklist
 }
 
 _restart() {

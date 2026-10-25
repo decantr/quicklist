@@ -23,4 +23,5 @@ Single-user shopping list app. One static Go binary, served only over Tailscale,
 - `mise run run`: run against `database.sqlite`
 - `mise run test`: vet and test
 - `mise run build` / `mise run build-linux`: build binaries into `bin/`
-- `mise run setup` / `mise run update`: install or update on the server
+- Release: push a `v*` tag; `.github/workflows/release.yml` publishes the binaries
+- Server: `_scripts/setup.sh` installs, `_scripts/update.sh` installs the latest release

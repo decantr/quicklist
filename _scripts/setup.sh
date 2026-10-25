@@ -26,7 +26,7 @@ fi
 $SUDO chown -R quicklist: "$DATA_DIR"
 
 # binary ======================================================================
-_build
+_install
 
 # service =====================================================================
 _info "Installing $INIT service"

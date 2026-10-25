@@ -26,13 +26,20 @@ To open over a tailnet you can use something like:
 
 ## Deployment
 
-On Alpine (OpenRC), Arch or Ubuntu (systemd), with mise installed:
+Tag a version to publish a release with static Linux binaries (amd64, arm64):
 
 ```sh
-mise run setup                      # fresh install
+git tag v1.0.0 && git push origin v1.0.0
+```
+
+On the server (Alpine with OpenRC, Arch or Ubuntu with systemd), from a clone of this repo:
+
+```sh
+sh ./_scripts/setup.sh              # fresh install
 sh ./_scripts/setup.sh old.sqlite   # install and copy in an existing database
-mise run update                     # pull, rebuild and restart
+sh ./_scripts/update.sh             # install the latest release and restart
 tailscale serve --bg http://127.0.0.1:8080
 ```
 
-The database lives at `/var/lib/quicklist/database.sqlite`.
+The server needs `curl`, plus `sqlite3` when copying in a database. The database lives at
+`/var/lib/quicklist/database.sqlite`.
