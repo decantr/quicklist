@@ -718,6 +718,10 @@ dialog::backdrop {
 		display: contents;
 	}
 
+	.title h1 {
+		flex-basis: 100%;
+	}
+
 	.title ~ .buttons {
 		margin-left: auto;
 	}
