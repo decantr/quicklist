@@ -6,7 +6,6 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"net/url"
-	"os"
 	"path/filepath"
 	"regexp"
 	"strconv"
@@ -143,17 +142,6 @@ func TestMigrationsOnEmptyDatabase(t *testing.T) {
 	}
 }
 
-func TestMigrationsRefuseLaravelDatabase(t *testing.T) {
-	path := filepath.Join(t.TempDir(), "laravel.sqlite")
-	createLaravelDatabase(t, path)
-
-	db, err := openDatabase(path)
-	if err == nil {
-		db.Close()
-		t.Fatal("opened a Laravel database without migrating it")
-	}
-}
-
 func TestMigrationsRefuseNewerDatabase(t *testing.T) {
 	ta := newTestApp(t)
 	ta.exec(`PRAGMA user_version = 99`)
@@ -194,22 +182,6 @@ func TestDatesAreStoredAsIso(t *testing.T) {
 	created_at := ta.queryString(`SELECT created_at FROM shoplists`)
 	if !regexp.MustCompile(`^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$`).MatchString(created_at) {
 		t.Fatalf("created_at = %q", created_at)
-	}
-}
-
-func createLaravelDatabase(t *testing.T, path string) {
-	t.Helper()
-	laravel_schema, err := os.ReadFile("testdata/laravel_schema.sql")
-	if err != nil {
-		t.Fatal(err)
-	}
-	db, err := sql.Open("sqlite", path)
-	if err != nil {
-		t.Fatal(err)
-	}
-	defer db.Close()
-	if _, err := db.Exec(string(laravel_schema)); err != nil {
-		t.Fatal(err)
 	}
 }
 

@@ -17,7 +17,7 @@ Single-user shopping list app. One static Go binary, served only over Tailscale,
 - Schema changes go in a new `migrations/NNNN_name.sql` that ends with `PRAGMA user_version = N;`;
   never edit an applied migration
 - Dates are `YYYY-MM-DD` text, timestamps are UTC `YYYY-MM-DD HH:MM:SS` text
-- `_scripts/migrate-db.sh` copies a Laravel database (`testdata/laravel_schema.sql`) into a new one
+- `_scripts/migrate-db.sh` copies an old Laravel database into a new one
 - Changes go through POST forms with hx-boost, then redirect back with a flash cookie
 
 ## Tasks
