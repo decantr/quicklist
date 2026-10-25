@@ -279,12 +279,13 @@ func TestCreateShoplistConcurrently(t *testing.T) {
 
 func TestCreateShoplistWithoutPreviousList(t *testing.T) {
 	ta := newTestApp(t)
+	before := today()
 
 	recorder := ta.post("/shoplists", url.Values{})
 
 	assertRedirect(t, recorder, "/shoplists")
-	if date := ta.queryString(`SELECT date FROM shoplists`); date != today() {
-		t.Fatalf("date = %q, want %q", date, today())
+	if date, after := ta.queryString(`SELECT date FROM shoplists`), today(); date != before && date != after {
+		t.Fatalf("date = %q, want %q", date, after)
 	}
 }
 
