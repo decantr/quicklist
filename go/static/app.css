@@ -286,6 +286,9 @@ input, select {
 .page-header select {
 	width: auto;
 	min-width: 12rem;
+	/* Button text line + padding + border; font stays 16px so iOS does not zoom. */
+	height: calc(0.875rem * 1.5 + 1rem + 2px);
+	padding-block: 0;
 }
 
 .error {
