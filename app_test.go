@@ -793,10 +793,43 @@ func TestExternalReturnPathIsIgnored(t *testing.T) {
 	}
 }
 
+func TestThemeIsRememberedPerDevice(t *testing.T) {
+	ta := newTestApp(t)
+	receipt, err := fs.ReadFile(embedded_files, "static/themes/receipt.css")
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	recorder := ta.post("/theme", url.Values{"theme": {"receipt"}, "return": {"/products"}})
+
+	assertRedirect(t, recorder, "/products")
+	page := ta.follow(recorder).Body.String()
+	assertContains(t, page, string(receipt))
+	// A boosted submit only swaps <body>, leaving the old theme's <style> in <head>.
+	assertContains(t, page, `action="/theme" hx-boost="false"`)
+	assertNotContains(t, ta.get("/products").Body.String(), string(receipt))
+}
+
+func TestUnknownThemeIsRejected(t *testing.T) {
+	ta := newTestApp(t)
+
+	assertStatus(t, ta.post("/theme", url.Values{"theme": {"missing"}}), http.StatusBadRequest)
+
+	request := httptest.NewRequest(http.MethodGet, "/dashboard", nil)
+	request.AddCookie(&http.Cookie{Name: "theme", Value: "missing"})
+	recorder := httptest.NewRecorder()
+	ta.app.ServeHTTP(recorder, request)
+	default_css, err := fs.ReadFile(embedded_files, "static/themes/default.css")
+	if err != nil {
+		t.Fatal(err)
+	}
+	assertContains(t, recorder.Body.String(), string(default_css))
+}
+
 func TestStaticAssetsAreServed(t *testing.T) {
 	ta := newTestApp(t)
 
-	for _, path := range []string{"/static/app.css", "/static/htmx.min.js", "/static/alpine.min.js", "/sw.js", "/manifest.webmanifest", "/up", "/favicon.ico", "/static/favicon.svg", "/static/icon-192.png", "/static/icon-512.png", "/static/apple-touch-icon.png"} {
+	for _, path := range []string{"/static/htmx.min.js", "/static/alpine.min.js", "/sw.js", "/manifest.webmanifest", "/up", "/favicon.ico", "/static/favicon.svg", "/static/icon-192.png", "/static/icon-512.png", "/static/apple-touch-icon.png"} {
 		assertStatus(t, ta.get(path), http.StatusOK)
 	}
 }

@@ -10,17 +10,22 @@ import (
 	"log"
 	"net/http"
 	"net/url"
+	"path"
+	"slices"
 	"strconv"
 	"strings"
 	"time"
 	"unicode/utf8"
 )
 
+const default_theme = "default"
+
 type App struct {
 	store     *Store
 	templates map[string]*template.Template
 	mux       *http.ServeMux
 	handler   http.Handler
+	themes    map[string]template.CSS
 }
 
 type Flash struct {
@@ -50,6 +55,8 @@ type PageData struct {
 	Quick      bool
 	Categories []string
 	SizeTypes  []string
+	Theme      string
+	Themes     []string
 }
 
 func (p PageData) Open(dialog string) bool {
@@ -85,6 +92,9 @@ type QuantityField struct {
 
 var template_funcs = template.FuncMap{
 	"categoryLabel": categoryLabel,
+	"themeLabel": func(theme string) string {
+		return strings.ToUpper(theme[:1]) + theme[1:]
+	},
 	"quantity": func(value, model string) QuantityField {
 		return QuantityField{Value: value, Model: model}
 	},
@@ -108,14 +118,25 @@ var template_funcs = template.FuncMap{
 }
 
 func newApp(store *Store) (*App, error) {
-	app := &App{store: store, templates: map[string]*template.Template{}, mux: http.NewServeMux()}
+	app := &App{store: store, templates: map[string]*template.Template{}, mux: http.NewServeMux(), themes: map[string]template.CSS{}}
 
-	stylesheet, err := fs.ReadFile(embedded_files, "static/app.css")
+	theme_files, err := fs.Glob(embedded_files, "static/themes/*.css")
 	if err != nil {
 		return nil, err
 	}
+	for _, file := range theme_files {
+		stylesheet, err := fs.ReadFile(embedded_files, file)
+		if err != nil {
+			return nil, err
+		}
+		app.themes[strings.TrimSuffix(path.Base(file), ".css")] = template.CSS(stylesheet)
+	}
+	if _, ok := app.themes[default_theme]; !ok {
+		return nil, fmt.Errorf("missing static/themes/%s.css", default_theme)
+	}
+
 	// Inlined so the first paint is already styled; a linked stylesheet flashed unstyled content.
-	funcs := template.FuncMap{"styles": func() template.CSS { return template.CSS(stylesheet) }}
+	funcs := template.FuncMap{"styles": func(theme string) template.CSS { return app.themes[theme] }}
 	for name, function := range template_funcs {
 		funcs[name] = function
 	}
@@ -163,6 +184,7 @@ func (a *App) routes(static_files fs.FS) {
 	a.mux.HandleFunc("POST /products", a.createProduct)
 	a.mux.HandleFunc("POST /products/update", a.updateProduct)
 	a.mux.HandleFunc("POST /products/{id}/delete", a.deleteProduct)
+	a.mux.HandleFunc("POST /theme", a.setTheme)
 }
 
 func (a *App) ServeHTTP(w http.ResponseWriter, r *http.Request) {
@@ -592,6 +614,46 @@ func validateQuantity(value string, errors map[string]string) int64 {
 	return quantity
 }
 
+// theme =======================================================================
+
+func (a *App) setTheme(w http.ResponseWriter, r *http.Request) {
+	theme := r.FormValue("theme")
+	if _, ok := a.themes[theme]; !ok {
+		http.Error(w, "unknown theme", http.StatusBadRequest)
+		return
+	}
+
+	http.SetCookie(w, &http.Cookie{
+		Name:     "theme",
+		Value:    theme,
+		Path:     "/",
+		MaxAge:   365 * 24 * 60 * 60,
+		HttpOnly: true,
+		SameSite: http.SameSiteLaxMode,
+	})
+	http.Redirect(w, r, returnPath(r, "/dashboard"), http.StatusSeeOther)
+}
+
+func (a *App) theme(r *http.Request) string {
+	if cookie, err := r.Cookie("theme"); err == nil {
+		if _, ok := a.themes[cookie.Value]; ok {
+			return cookie.Value
+		}
+	}
+	return default_theme
+}
+
+func (a *App) themeNames() []string {
+	names := []string{default_theme}
+	for name := range a.themes {
+		if name != default_theme {
+			names = append(names, name)
+		}
+	}
+	slices.Sort(names[1:])
+	return names
+}
+
 // helpers =====================================================================
 
 func (a *App) findShoplist(w http.ResponseWriter, r *http.Request) (*Shoplist, bool) {
@@ -624,6 +686,8 @@ func (a *App) pageData(w http.ResponseWriter, r *http.Request, title string) Pag
 		Flash:      takeFlash(w, r),
 		Categories: categories,
 		SizeTypes:  size_types,
+		Theme:      a.theme(r),
+		Themes:     a.themeNames(),
 	}
 	if form, ok := r.Context().Value(formStateKey{}).(*FormState); ok {
 		data.Form = form

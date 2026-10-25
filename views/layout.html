@@ -9,7 +9,7 @@
 	<link rel="icon" href="/static/favicon.svg" type="image/svg+xml">
 	<link rel="apple-touch-icon" href="/static/apple-touch-icon.png">
 	<link rel="manifest" href="/manifest.webmanifest">
-	<style>{{styles}}</style>
+	<style>{{styles .Theme}}</style>
 	<script src="/static/htmx.min.js" defer></script>
 	<script src="/static/app.js" defer></script>
 	<script src="/static/alpine.min.js" defer></script>
@@ -27,6 +27,18 @@
 	<main>
 		{{template "content" .}}
 	</main>
+
+	<footer class="footer">
+		<form method="post" action="/theme" hx-boost="false">
+			<input type="hidden" name="return" value="{{.Path}}">
+			<label>Theme
+				<select name="theme" onchange="this.form.requestSubmit()">
+					{{range .Themes}}<option value="{{.}}" {{if eq . $.Theme}}selected{{end}}>{{themeLabel .}}</option>{{end}}
+				</select>
+			</label>
+			<noscript><button>Apply</button></noscript>
+		</form>
+	</footer>
 
 	<div class="toasts" id="toasts">
 		{{with .Flash}}<div class="toast" x-data x-init="setTimeout(() => $el.remove(), 3000)">{{.Message}}</div>{{end}}

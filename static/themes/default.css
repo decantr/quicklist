@@ -416,6 +416,36 @@ dialog::backdrop {
 	font-size: 0.875rem;
 }
 
+/* footer */
+
+.footer {
+	max-width: 64rem;
+	margin: 0 auto;
+	padding: 1rem 1rem 2rem;
+	display: flex;
+	justify-content: flex-end;
+}
+
+.footer form {
+	display: flex;
+	align-items: center;
+	gap: 0.5rem;
+}
+
+.footer label {
+	flex-direction: row;
+	align-items: center;
+	gap: 0.5rem;
+	color: var(--muted);
+	font-weight: normal;
+}
+
+.footer select {
+	width: auto;
+	height: calc(0.875rem * 1.5 + 1rem + 2px);
+	padding-block: 0;
+}
+
 .name {
 	white-space: normal;
 	width: 100%;

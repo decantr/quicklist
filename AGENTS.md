@@ -6,7 +6,7 @@ Single-user shopping list app. One static Go binary, served only over Tailscale,
 
 - Go 1.26 (pinned in `mise.toml`), stdlib `net/http` router, `html/template`
 - `modernc.org/sqlite` (pure Go, `CGO_ENABLED=0`), hand-written `database/sql` queries
-- htmx and Alpine.js, vendored in `static/`; hand-rolled CSS in `static/app.css`
+- htmx and Alpine.js, vendored in `static/`; hand-rolled CSS themes in `static/themes/*.css`, picked per device by the `theme` cookie (`default.css` is required)
 - `views/` and `static/` are embedded into the binary; restart the app to see changes
 
 ## Rules
