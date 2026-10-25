@@ -127,7 +127,7 @@
 		<h2>Formatted List</h2>
 		<button type="button" class="small" @click="navigator.clipboard.writeText($refs.output.innerText.trim()); toast('Copied to clipboard')">Copy</button>
 	</div>
-	<pre x-ref="output">{{.Formatted}}</pre>
+	<pre id="formatted-list" x-ref="output">{{.Formatted}}</pre>
 </section>
 {{end}}
 {{end}}

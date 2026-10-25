@@ -1,10 +1,15 @@
 {{define "content"}}
 <div class="page-header">
-	{{if .Shoplist}}
-	<h1>Latest Shopping List: {{displayDate .Shoplist.Date}}</h1>
-	{{else}}
-	<h1>Dashboard</h1>
-	{{end}}
+	<div class="title">
+		{{if .Shoplist}}
+		<h1>Latest Shopping List: {{displayDate .Shoplist.Date}}</h1>
+		{{else}}
+		<h1>Dashboard</h1>
+		{{end}}
+		{{if .Items}}
+		<button type="button" x-data @click="navigator.clipboard.writeText(document.getElementById('formatted-list').innerText.trim()); toast('Copied to clipboard')">Copy Text</button>
+		{{end}}
+	</div>
 	<div class="buttons">
 		{{if .Shoplist}}
 		<button type="button" class="primary" onclick="document.getElementById('add-item').showModal()">Add Product</button>

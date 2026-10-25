@@ -672,6 +672,7 @@ func TestDashboardFormattedListIsSorted(t *testing.T) {
 	body := ta.get("/dashboard").Body.String()
 
 	assertContains(t, body, "1x Bread (1 g)\n\n3x Milk (500 ml)")
+	assertContains(t, body, "Copy Text")
 }
 
 func TestFormattedListEscapesHTML(t *testing.T) {
