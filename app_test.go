@@ -1,7 +1,10 @@
 package main
 
 import (
+	"context"
 	"database/sql"
+	"fmt"
+	"io"
 	"io/fs"
 	"net"
 	"net/http"
@@ -12,6 +15,7 @@ import (
 	"strings"
 	"sync"
 	"testing"
+	"time"
 )
 
 type testApp struct {
@@ -847,6 +851,44 @@ func TestHealthCheck(t *testing.T) {
 	server.Close()
 	if err := checkHealth("127.0.0.1:" + port); err == nil {
 		t.Fatal("stopped server passed the health check")
+	}
+}
+
+func TestShutdownFinishesRequestsInFlight(t *testing.T) {
+	started := make(chan struct{})
+	server := &http.Server{Handler: http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		close(started)
+		time.Sleep(100 * time.Millisecond)
+		fmt.Fprint(w, "done")
+	})}
+	listener, err := net.Listen("tcp", "127.0.0.1:0")
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	ctx, cancel := context.WithCancel(context.Background())
+	stopped := make(chan error, 1)
+	go func() { stopped <- serve(ctx, server, listener) }()
+
+	bodies := make(chan string, 1)
+	go func() {
+		response, err := http.Get("http://" + listener.Addr().String())
+		if err != nil {
+			bodies <- err.Error()
+			return
+		}
+		defer response.Body.Close()
+		body, _ := io.ReadAll(response.Body)
+		bodies <- string(body)
+	}()
+
+	<-started
+	cancel()
+	if body := <-bodies; body != "done" {
+		t.Fatalf("request in flight got %q", body)
+	}
+	if err := <-stopped; err != nil {
+		t.Fatalf("serve: %v", err)
 	}
 }
 

@@ -1,12 +1,16 @@
 package main
 
 import (
+	"context"
+	"errors"
 	"flag"
 	"fmt"
 	"log"
 	"net"
 	"net/http"
 	"os"
+	"os/signal"
+	"syscall"
 	"time"
 
 	_ "time/tzdata"
@@ -36,14 +40,48 @@ func main() {
 		log.Fatalf("templates: %v", err)
 	}
 
+	listener, err := net.Listen("tcp", *addr)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
+	defer stop()
+
 	server := &http.Server{
-		Addr:              *addr,
 		Handler:           app,
 		ReadHeaderTimeout: 10 * time.Second,
 	}
 
 	log.Printf("listening on http://%s (db: %s)", *addr, *db_path)
-	log.Fatal(server.ListenAndServe())
+	if err := serve(ctx, server, listener); err != nil {
+		log.Fatal(err)
+	}
+	log.Print("stopped")
+}
+
+// Shorter than docker's default 10s stop grace period, so it finishes before SIGKILL.
+const shutdown_timeout = 8 * time.Second
+
+func serve(ctx context.Context, server *http.Server, listener net.Listener) error {
+	errs := make(chan error, 1)
+	go func() { errs <- server.Serve(listener) }()
+
+	select {
+	case err := <-errs:
+		return err
+	case <-ctx.Done():
+	}
+
+	shutdown_ctx, cancel := context.WithTimeout(context.Background(), shutdown_timeout)
+	defer cancel()
+	if err := server.Shutdown(shutdown_ctx); err != nil {
+		return err
+	}
+	if err := <-errs; !errors.Is(err, http.ErrServerClosed) {
+		return err
+	}
+	return nil
 }
 
 func envOr(key, fallback string) string {
