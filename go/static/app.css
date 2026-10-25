@@ -424,10 +424,6 @@ dialog::backdrop {
 		display: contents;
 	}
 
-	.title h1 {
-		width: 100%;
-	}
-
 	.title ~ .buttons {
 		margin-left: auto;
 	}
