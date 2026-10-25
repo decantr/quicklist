@@ -213,6 +213,31 @@ func TestDashboardShowsLatestListByCreatedAt(t *testing.T) {
 	assertNotContains(t, body, "1x Milk (500 ml)")
 }
 
+type headerCounter struct {
+	*httptest.ResponseRecorder
+	calls int
+}
+
+func (h *headerCounter) WriteHeader(status int) {
+	h.calls++
+	h.ResponseRecorder.WriteHeader(status)
+}
+
+func TestStatusWriterWritesHeaderOnce(t *testing.T) {
+	for name, write := range map[string]func(http.ResponseWriter){
+		"page":      func(w http.ResponseWriter) { w.Write([]byte("a")); w.Write([]byte("b")) },
+		"not found": func(w http.ResponseWriter) { http.NotFound(w, nil) },
+	} {
+		counter := &headerCounter{ResponseRecorder: httptest.NewRecorder()}
+
+		write(&statusWriter{ResponseWriter: counter, status: http.StatusUnprocessableEntity})
+
+		if counter.calls != 1 {
+			t.Errorf("%s: WriteHeader called %d times", name, counter.calls)
+		}
+	}
+}
+
 func TestRootRedirectsToDashboard(t *testing.T) {
 	ta := newTestApp(t)
 

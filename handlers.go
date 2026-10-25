@@ -650,10 +650,15 @@ func (a *App) renderErrors(w http.ResponseWriter, r *http.Request, errors map[st
 
 type statusWriter struct {
 	http.ResponseWriter
-	status int
+	status       int
+	wrote_header bool
 }
 
 func (s *statusWriter) WriteHeader(status int) {
+	if s.wrote_header {
+		return
+	}
+	s.wrote_header = true
 	if status == http.StatusOK {
 		status = s.status
 	}
