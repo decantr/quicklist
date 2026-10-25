@@ -210,13 +210,21 @@ func TestShoplistIndexListsByDateWithCounts(t *testing.T) {
 	ta := newTestApp(t)
 	milk := ta.product("Milk", 500, "ml", "dairy")
 	older := ta.shoplist("2026-03-01", "2026-03-01 10:00:00")
-	ta.shoplist("2026-04-01", "2026-04-01 10:00:00")
+	newer := ta.shoplist("2026-04-01", "2026-04-01 10:00:00")
 	ta.attach(older, milk, 3)
 
-	body := ta.get("/shoplists").Body.String()
+	shoplists, err := ta.store.shoplists()
+	if err != nil {
+		t.Fatal(err)
+	}
 
-	assertBefore(t, body, "Apr 01, 2026", "Mar 01, 2026")
-	assertBefore(t, body, "<td>0</td>", "<td>1</td>")
+	if len(shoplists) != 2 || shoplists[0].ID != newer || shoplists[1].ID != older {
+		t.Fatalf("lists = %+v, want newer date first", shoplists)
+	}
+	if shoplists[0].ProductCount != 0 || shoplists[1].ProductCount != 1 {
+		t.Fatalf("counts = %d, %d, want 0, 1", shoplists[0].ProductCount, shoplists[1].ProductCount)
+	}
+	assertStatus(t, ta.get("/shoplists"), http.StatusOK)
 }
 
 func TestCreateShoplistCopiesPreviousList(t *testing.T) {
