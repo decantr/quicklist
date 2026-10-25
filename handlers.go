@@ -328,7 +328,11 @@ func (a *App) addItem(w http.ResponseWriter, r *http.Request) {
 	}
 
 	errors := map[string]string{}
-	product_id := a.validateProductID(r.FormValue("product_id"), errors)
+	product_id, err := a.validateProductID(r.FormValue("product_id"), errors)
+	if err != nil {
+		serverError(w, err)
+		return
+	}
 	quantity := validateQuantity(r.FormValue("quantity"), errors)
 
 	if product_id != 0 {
@@ -360,7 +364,11 @@ func (a *App) updateItem(w http.ResponseWriter, r *http.Request) {
 	}
 
 	errors := map[string]string{}
-	product_id := a.validateProductID(r.FormValue("product_id"), errors)
+	product_id, err := a.validateProductID(r.FormValue("product_id"), errors)
+	if err != nil {
+		serverError(w, err)
+		return
+	}
 	quantity := validateQuantity(r.FormValue("quantity"), errors)
 	if len(errors) > 0 {
 		a.renderErrors(w, r, errors)
@@ -545,22 +553,27 @@ func (a *App) validateProduct(r *http.Request, id int64, errors map[string]strin
 	return product, nil
 }
 
-func (a *App) validateProductID(value string, errors map[string]string) int64 {
+func (a *App) validateProductID(value string, errors map[string]string) (int64, error) {
 	if value == "" {
 		errors["product_id"] = "The product field is required."
-		return 0
+		return 0, nil
 	}
 
 	id, err := strconv.ParseInt(value, 10, 64)
-	if err == nil {
-		product, err := a.store.product(id)
-		if err == nil && product != nil {
-			return id
-		}
+	if err != nil {
+		errors["product_id"] = "The selected product is invalid."
+		return 0, nil
 	}
 
-	errors["product_id"] = "The selected product is invalid."
-	return 0
+	product, err := a.store.product(id)
+	if err != nil {
+		return 0, err
+	}
+	if product == nil {
+		errors["product_id"] = "The selected product is invalid."
+		return 0, nil
+	}
+	return id, nil
 }
 
 func validateQuantity(value string, errors map[string]string) int64 {

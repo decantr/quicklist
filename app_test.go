@@ -413,6 +413,19 @@ func TestAddItemOptionsExcludeProductsOnList(t *testing.T) {
 	assertNotContains(t, body, "Milk (500 ml)</option>")
 }
 
+func TestValidateProductIDReturnsDatabaseErrors(t *testing.T) {
+	ta := newTestApp(t)
+	ta.exec(`DROP TABLE products`)
+	errors := map[string]string{}
+
+	if _, err := ta.app.validateProductID("1", errors); err == nil {
+		t.Fatal("database error was not returned")
+	}
+	if len(errors) != 0 {
+		t.Fatalf("database error reported as validation: %v", errors)
+	}
+}
+
 func TestAddItemValidation(t *testing.T) {
 	ta := newTestApp(t)
 	milk := ta.product("Milk", 500, "ml", "dairy")
@@ -427,6 +440,7 @@ func TestAddItemValidation(t *testing.T) {
 	}{
 		{"", "1", "The product field is required."},
 		{"999", "1", "The selected product is invalid."},
+		{"abc", "1", "The selected product is invalid."},
 		{itoa(milk), "1", "This product is already in the shopping list."},
 		{itoa(milk), "", "The quantity field is required."},
 		{itoa(milk), "0", "The quantity field must be at least 1."},
