@@ -61,3 +61,7 @@ jobs:
           docker stop quicklist
           test "$(docker inspect -f '{{.State.ExitCode}}' quicklist)" = 0
           docker logs quicklist 2>&1 | grep -q stopped
+
+      - name: Show container logs
+        if: failure()
+        run: docker logs quicklist
