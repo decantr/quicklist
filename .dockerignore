@@ -1,0 +1,8 @@
+*
+!go.mod
+!go.sum
+!*.go
+*_test.go
+!views
+!static
+!migrations

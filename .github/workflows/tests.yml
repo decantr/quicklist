@@ -40,3 +40,24 @@ jobs:
 
       - name: Build Linux binaries
         run: mise run build-linux
+
+  docker:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+
+      - name: Build image
+        run: docker build -t quicklist:test .
+
+      - name: Wait for the health check
+        run: |
+          docker run -d --name quicklist quicklist:test
+          timeout 30 sh -c 'until [ "$(docker inspect -f "{{.State.Health.Status}}" quicklist)" = healthy ]; do sleep 1; done'
+
+      - name: Stop gracefully
+        run: |
+          docker stop quicklist
+          test "$(docker inspect -f '{{.State.ExitCode}}' quicklist)" = 0
+          docker logs quicklist 2>&1 | grep -q stopped

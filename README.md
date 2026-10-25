@@ -24,6 +24,8 @@ To open over a tailnet you can use something like:
 | `-addr` | `QUICKLIST_ADDR` | `127.0.0.1:8080` |
 | `-db`   | `QUICKLIST_DB`   | `database.sqlite`|
 
+`quicklist -healthcheck` exits 0 when the server at `-addr` answers on `/up`.
+
 ## Migrating from the Laravel version
 
 The schema is new, so the old Laravel database is copied into a fresh file. The old file is not changed.
@@ -51,3 +53,40 @@ tailscale serve --bg http://127.0.0.1:8080
 
 The server needs `curl`, plus `sqlite3` when migrating a database. The database lives at
 `/var/lib/quicklist/database.sqlite`.
+
+### Docker
+
+Each release also publishes `ghcr.io/decantr/quicklist` (amd64, arm64). This example keeps the database in a
+volume and uses [DockTail](https://docktail.org) labels to serve it over HTTPS on the tailnet:
+
+```yaml
+name: quicklist
+
+services:
+  quicklist:
+    image: ghcr.io/decantr/quicklist:latest
+    restart: unless-stopped
+    environment:
+      TZ: Europe/London
+    volumes:
+      - data:/data
+    labels:
+      - docktail.service.enable=true
+      - docktail.service.name=quicklist
+      - docktail.service.port=8080
+      - docktail.service.service-port=443
+
+volumes:
+  data:
+```
+
+Set `TZ` so new lists get the local date. Without DockTail, publish the port instead (`ports: ["127.0.0.1:8080:8080"]`).
+
+To bring in an existing database, migrate it on the host first, then copy it into the volume while the app is stopped:
+
+```sh
+docker compose stop quicklist
+docker run --rm -v quicklist_data:/data -v "$PWD/database.sqlite:/in.sqlite:ro" alpine \
+	sh -c 'install -o 65532 -g 65532 -m 600 /in.sqlite /data/database.sqlite && chown 65532:65532 /data'
+docker compose up -d
+```

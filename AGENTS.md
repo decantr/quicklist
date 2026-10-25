@@ -25,5 +25,6 @@ Single-user shopping list app. One static Go binary, served only over Tailscale,
 - `mise run run`: run against `database.sqlite`
 - `mise run test`: vet and test
 - `mise run build` / `mise run build-linux`: build binaries into `bin/`
-- Release: push a `v*` tag; `.github/workflows/release.yml` publishes the binaries
+- Release: push a `v*` tag; `.github/workflows/release.yml` publishes the binaries and the ghcr.io image
+- Docker: `Dockerfile`, with a compose example in the README (exposed on the tailnet by DockTail labels); CI builds the image and checks its health
 - Server: `_scripts/setup.sh` installs, `_scripts/update.sh` installs the latest release
