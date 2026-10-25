@@ -59,6 +59,7 @@ func (ta *testApp) post(path string, values url.Values) *httptest.ResponseRecord
 // follow loads the redirect target with the cookies the redirect set, so the flash shows.
 func (ta *testApp) follow(recorder *httptest.ResponseRecorder) *httptest.ResponseRecorder {
 	ta.t.Helper()
+	assertStatus(ta.t, recorder, http.StatusSeeOther)
 	request := httptest.NewRequest(http.MethodGet, recorder.Header().Get("Location"), nil)
 	for _, cookie := range recorder.Result().Cookies() {
 		request.AddCookie(cookie)
