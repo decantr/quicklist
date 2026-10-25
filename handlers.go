@@ -230,7 +230,7 @@ func (a *App) shoplistShow(w http.ResponseWriter, r *http.Request) {
 	a.render(w, "shoplist", data)
 }
 
-// loadShoplist mirrors Livewire: the dashboard copies sorted items, the show page copies them in added order.
+// loadShoplist formats sorted items for the dashboard but keeps added order on the show page.
 func (a *App) loadShoplist(data *PageData, shoplist *Shoplist, format_sorted bool) error {
 	items, err := a.store.itemsSorted(shoplist.ID)
 	if err != nil {

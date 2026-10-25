@@ -1,6 +1,6 @@
 #!/bin/sh
 # single entry point for setting up this project
-# usage: setup.sh [existing database to copy in]
+# usage: setup.sh [optional database to migrate in]
 
 . ./_scripts/common.sh
 
@@ -19,9 +19,7 @@ fi
 # database ====================================================================
 $SUDO mkdir -p "$DATA_DIR"
 if [ -n "$1" ] && [ ! -f "$DATABASE" ]; then
-	_info "Copying database from $1"
-	[ -f "$1" ] || _error "No database at $1"
-	$SUDO sqlite3 "$1" ".backup '$DATABASE'" || _error "Database copy failed"
+	$SUDO sh ./_scripts/migrate-db.sh "$1" "$DATABASE" || _error "Database migration failed"
 fi
 $SUDO chown -R quicklist: "$DATA_DIR"
 

@@ -14,8 +14,10 @@ Single-user shopping list app. One static Go binary, served only over Tailscale,
 - Do not change dependencies without approval
 - Every change must be tested: add or update a test in `app_test.go`, then run `mise run test`
 - Run `mise run fmt` after Go changes
-- Keep the database compatible with the original Laravel schema (`testdata/laravel_schema.sql`):
-  UTC `Y-m-d H:i:s` timestamps, `shoplists.date` as `Y-m-d 00:00:00`, new lists owned by user 1
+- Schema changes go in a new `migrations/NNNN_name.sql` that ends with `PRAGMA user_version = N;`;
+  never edit an applied migration
+- Dates are `YYYY-MM-DD` text, timestamps are UTC `YYYY-MM-DD HH:MM:SS` text
+- `_scripts/migrate-db.sh` copies a Laravel database (`testdata/laravel_schema.sql`) into a new one
 - Changes go through POST forms with hx-boost, then redirect back with a flash cookie
 
 ## Tasks

@@ -24,6 +24,14 @@ To open over a tailnet you can use something like:
 | `-addr` | `QUICKLIST_ADDR` | `127.0.0.1:8080` |
 | `-db`   | `QUICKLIST_DB`   | `database.sqlite`|
 
+## Migrating from the Laravel version
+
+The schema is new, so the old Laravel database is copied into a fresh file. The old file is not changed.
+
+```sh
+sh ./_scripts/migrate-db.sh laravel.sqlite database.sqlite
+```
+
 ## Deployment
 
 Tag a version to publish a release with static Linux binaries (amd64, arm64):
@@ -36,10 +44,10 @@ On the server (Alpine with OpenRC, Arch or Ubuntu with systemd), from a clone of
 
 ```sh
 sh ./_scripts/setup.sh              # fresh install
-sh ./_scripts/setup.sh old.sqlite   # install and copy in an existing database
+sh ./_scripts/setup.sh old.sqlite   # install and migrate in the old Laravel database
 sh ./_scripts/update.sh             # install the latest release and restart
 tailscale serve --bg http://127.0.0.1:8080
 ```
 
-The server needs `curl`, plus `sqlite3` when copying in a database. The database lives at
+The server needs `curl`, plus `sqlite3` when migrating a database. The database lives at
 `/var/lib/quicklist/database.sqlite`.

@@ -2,6 +2,7 @@ package main
 
 import (
 	"database/sql"
+	"io/fs"
 	"net/http"
 	"net/http/httptest"
 	"net/url"
@@ -85,15 +86,15 @@ func (ta *testApp) queryString(query string, args ...any) string {
 }
 
 func (ta *testApp) product(name string, size int64, size_type, category string) int64 {
-	return ta.exec(`INSERT INTO products (name, size, size_type, category, created_at, updated_at) VALUES (?, ?, ?, ?, '2026-04-01 10:00:00', '2026-04-01 10:00:00')`, name, size, size_type, category)
+	return ta.exec(`INSERT INTO products (name, size, size_type, category, created_at) VALUES (?, ?, ?, ?, '2026-04-01 10:00:00')`, name, size, size_type, category)
 }
 
 func (ta *testApp) shoplist(date, created_at string) int64 {
-	return ta.exec(`INSERT INTO shoplists (date, created_at, updated_at, user_id) VALUES (?, ?, ?, 1)`, date+" 00:00:00", created_at, created_at)
+	return ta.exec(`INSERT INTO shoplists (date, created_at) VALUES (?, ?)`, date, created_at)
 }
 
 func (ta *testApp) attach(shoplist_id, product_id, quantity int64) {
-	ta.exec(`INSERT INTO product_shoplist (shoplist_id, product_id, quantity) VALUES (?, ?, ?)`, shoplist_id, product_id, quantity)
+	ta.exec(`INSERT INTO shoplist_items (shoplist_id, product_id, quantity) VALUES (?, ?, ?)`, shoplist_id, product_id, quantity)
 }
 
 func assertStatus(t *testing.T, recorder *httptest.ResponseRecorder, status int) {
@@ -127,19 +128,77 @@ func assertRedirect(t *testing.T, recorder *httptest.ResponseRecorder, location 
 
 // schema ======================================================================
 
-func TestSchemaOnEmptyDatabaseCreatesOwner(t *testing.T) {
+func TestMigrationsOnEmptyDatabase(t *testing.T) {
 	ta := newTestApp(t)
 
-	if count := ta.queryInt(`SELECT COUNT(*) FROM users WHERE id = 1`); count != 1 {
-		t.Fatalf("owner rows = %d", count)
+	migrations, err := fs.Glob(embedded_files, "migrations/*.sql")
+	if err != nil {
+		t.Fatal(err)
 	}
-	if err := ensureSchema(ta.db); err != nil {
-		t.Fatalf("second ensureSchema: %v", err)
+	if version := ta.queryInt(`PRAGMA user_version`); version != int64(len(migrations)) {
+		t.Fatalf("user_version = %d, want %d", version, len(migrations))
+	}
+	if err := migrate(ta.db); err != nil {
+		t.Fatalf("second migrate: %v", err)
 	}
 }
 
-func TestSchemaOnLaravelDatabaseOnlyAddsIndexes(t *testing.T) {
+func TestMigrationsRefuseLaravelDatabase(t *testing.T) {
 	path := filepath.Join(t.TempDir(), "laravel.sqlite")
+	createLaravelDatabase(t, path)
+
+	db, err := openDatabase(path)
+	if err == nil {
+		db.Close()
+		t.Fatal("opened a Laravel database without migrating it")
+	}
+}
+
+func TestMigrationsRefuseNewerDatabase(t *testing.T) {
+	ta := newTestApp(t)
+	ta.exec(`PRAGMA user_version = 99`)
+
+	if err := migrate(ta.db); err == nil {
+		t.Fatal("migrated a database from a newer build")
+	}
+}
+
+func TestSchemaRejectsInvalidRows(t *testing.T) {
+	ta := newTestApp(t)
+	milk := ta.product("Milk", 500, "ml", "dairy")
+	list := ta.shoplist("2026-04-01", "2026-04-01 10:00:00")
+
+	for _, statement := range []string{
+		`INSERT INTO products (name, size, size_type, category) VALUES ('Tea', 1, 'kg', 'cupboard')`,
+		`INSERT INTO products (name, size, size_type, category) VALUES ('Tea', 1, 'g', 'drinks')`,
+		`INSERT INTO products (name, size, size_type, category) VALUES ('Milk', 500, 'ml', 'fridge')`,
+		`INSERT INTO shoplists (date) VALUES ('2026-02-30')`,
+		`INSERT INTO shoplists (date) VALUES ('2026-04-01 00:00:00')`,
+		`INSERT INTO shoplist_items (shoplist_id, product_id, quantity) VALUES (` + itoa(list) + `, ` + itoa(milk) + `, 0)`,
+		`INSERT INTO shoplist_items (shoplist_id, product_id, quantity) VALUES (999, ` + itoa(milk) + `, 1)`,
+	} {
+		if _, err := ta.db.Exec(statement); err == nil {
+			t.Errorf("accepted %s", statement)
+		}
+	}
+}
+
+func TestDatesAreStoredAsIso(t *testing.T) {
+	ta := newTestApp(t)
+
+	ta.post("/shoplists", url.Values{})
+
+	if date := ta.queryString(`SELECT date FROM shoplists`); !regexp.MustCompile(`^\d{4}-\d{2}-\d{2}$`).MatchString(date) {
+		t.Fatalf("date = %q", date)
+	}
+	created_at := ta.queryString(`SELECT created_at FROM shoplists`)
+	if !regexp.MustCompile(`^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$`).MatchString(created_at) {
+		t.Fatalf("created_at = %q", created_at)
+	}
+}
+
+func createLaravelDatabase(t *testing.T, path string) {
+	t.Helper()
 	laravel_schema, err := os.ReadFile("testdata/laravel_schema.sql")
 	if err != nil {
 		t.Fatal(err)
@@ -148,61 +207,9 @@ func TestSchemaOnLaravelDatabaseOnlyAddsIndexes(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
+	defer db.Close()
 	if _, err := db.Exec(string(laravel_schema)); err != nil {
 		t.Fatal(err)
-	}
-	tables_before := tableDefinitions(t, db)
-	db.Close()
-
-	ta := newTestAppFromPath(t, path)
-
-	tables_after := tableDefinitions(t, ta.db)
-	if tables_before != tables_after {
-		t.Fatalf("table definitions changed:\n%s\n---\n%s", tables_before, tables_after)
-	}
-	for _, index := range []string{
-		"product_shoplist_shoplist_id_product_id_unique",
-		"product_shoplist_product_id_index",
-		"shoplists_user_id_index",
-		"products_name_size_size_type_unique",
-	} {
-		if ta.queryInt(`SELECT COUNT(*) FROM sqlite_master WHERE type = 'index' AND name = ?`, index) != 1 {
-			t.Fatalf("index %s missing", index)
-		}
-	}
-}
-
-func tableDefinitions(t *testing.T, db *sql.DB) string {
-	t.Helper()
-	rows, err := db.Query(`SELECT sql FROM sqlite_master WHERE type = 'table' ORDER BY name`)
-	if err != nil {
-		t.Fatal(err)
-	}
-	defer rows.Close()
-
-	var definitions []string
-	for rows.Next() {
-		var definition string
-		if err := rows.Scan(&definition); err != nil {
-			t.Fatal(err)
-		}
-		definitions = append(definitions, definition)
-	}
-	return strings.Join(definitions, "\n")
-}
-
-func TestDatesUseLaravelFormat(t *testing.T) {
-	ta := newTestApp(t)
-
-	ta.post("/shoplists", url.Values{})
-
-	date := ta.queryString(`SELECT date || '' FROM shoplists`)
-	if !regexp.MustCompile(`^\d{4}-\d{2}-\d{2} 00:00:00$`).MatchString(date) {
-		t.Fatalf("date = %q", date)
-	}
-	created_at := ta.queryString(`SELECT created_at || '' FROM shoplists`)
-	if !regexp.MustCompile(`^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$`).MatchString(created_at) {
-		t.Fatalf("created_at = %q", created_at)
 	}
 }
 
@@ -271,14 +278,11 @@ func TestCreateShoplistCopiesPreviousList(t *testing.T) {
 	if created == previous {
 		t.Fatal("no list created")
 	}
-	if quantity := ta.queryInt(`SELECT quantity FROM product_shoplist WHERE shoplist_id = ? AND product_id = ?`, created, milk); quantity != 3 {
+	if quantity := ta.queryInt(`SELECT quantity FROM shoplist_items WHERE shoplist_id = ? AND product_id = ?`, created, milk); quantity != 3 {
 		t.Fatalf("milk quantity = %d", quantity)
 	}
-	if count := ta.queryInt(`SELECT COUNT(*) FROM product_shoplist WHERE shoplist_id = ?`, created); count != 2 {
+	if count := ta.queryInt(`SELECT COUNT(*) FROM shoplist_items WHERE shoplist_id = ?`, created); count != 2 {
 		t.Fatalf("copied items = %d", count)
-	}
-	if user_id := ta.queryInt(`SELECT user_id FROM shoplists WHERE id = ?`, created); user_id != owner_user_id {
-		t.Fatalf("user_id = %d", user_id)
 	}
 }
 
@@ -318,7 +322,7 @@ func TestUpdateShoplistDate(t *testing.T) {
 	recorder := ta.post(path+"/date", url.Values{"date": {"2026-04-10"}, "return": {path}})
 
 	assertRedirect(t, recorder, path)
-	if date := ta.queryString(`SELECT date || '' FROM shoplists WHERE id = ?`, id); date != "2026-04-10 00:00:00" {
+	if date := ta.queryString(`SELECT date FROM shoplists WHERE id = ?`, id); date != "2026-04-10" {
 		t.Fatalf("date = %q", date)
 	}
 	assertContains(t, ta.get(path).Body.String(), "Apr 10, 2026")
@@ -338,7 +342,7 @@ func TestUpdateShoplistDateValidation(t *testing.T) {
 		assertStatus(t, recorder, http.StatusUnprocessableEntity)
 		assertContains(t, recorder.Body.String(), message)
 	}
-	if date := ta.queryString(`SELECT date || '' FROM shoplists WHERE id = ?`, id); date != "2026-04-01 00:00:00" {
+	if date := ta.queryString(`SELECT date FROM shoplists WHERE id = ?`, id); date != "2026-04-01" {
 		t.Fatalf("date changed to %q", date)
 	}
 }
@@ -352,7 +356,7 @@ func TestDeleteShoplistCascades(t *testing.T) {
 	recorder := ta.post("/shoplists/"+itoa(id)+"/delete", url.Values{"return": {"/shoplists"}})
 
 	assertRedirect(t, recorder, "/shoplists")
-	if count := ta.queryInt(`SELECT COUNT(*) FROM product_shoplist`); count != 0 {
+	if count := ta.queryInt(`SELECT COUNT(*) FROM shoplist_items`); count != 0 {
 		t.Fatalf("items left = %d", count)
 	}
 	if count := ta.queryInt(`SELECT COUNT(*) FROM products`); count != 1 {
@@ -370,7 +374,7 @@ func TestAddItem(t *testing.T) {
 	recorder := ta.post("/shoplists/"+itoa(id)+"/items", url.Values{"product_id": {itoa(milk)}, "quantity": {"2"}, "return": {"/dashboard"}})
 
 	assertRedirect(t, recorder, "/dashboard")
-	if quantity := ta.queryInt(`SELECT quantity FROM product_shoplist WHERE shoplist_id = ? AND product_id = ?`, id, milk); quantity != 2 {
+	if quantity := ta.queryInt(`SELECT quantity FROM shoplist_items WHERE shoplist_id = ? AND product_id = ?`, id, milk); quantity != 2 {
 		t.Fatalf("quantity = %d", quantity)
 	}
 }
@@ -426,7 +430,7 @@ func TestUpdateItemQuantity(t *testing.T) {
 	recorder := ta.post(path+"/items/update", url.Values{"product_id": {itoa(milk)}, "quantity": {"5"}, "return": {path}})
 
 	assertRedirect(t, recorder, path)
-	if quantity := ta.queryInt(`SELECT quantity FROM product_shoplist WHERE product_id = ?`, milk); quantity != 5 {
+	if quantity := ta.queryInt(`SELECT quantity FROM shoplist_items WHERE product_id = ?`, milk); quantity != 5 {
 		t.Fatalf("quantity = %d", quantity)
 	}
 }
@@ -453,7 +457,7 @@ func TestUpdateItemNotOnList(t *testing.T) {
 	recorder := ta.post(path+"/items/update", url.Values{"product_id": {itoa(milk)}, "quantity": {"2"}, "return": {path}})
 
 	assertRedirect(t, recorder, path)
-	if count := ta.queryInt(`SELECT COUNT(*) FROM product_shoplist`); count != 0 {
+	if count := ta.queryInt(`SELECT COUNT(*) FROM shoplist_items`); count != 0 {
 		t.Fatalf("items = %d", count)
 	}
 
@@ -476,7 +480,7 @@ func TestRemoveItem(t *testing.T) {
 	recorder := ta.post(path+"/items/"+itoa(milk)+"/remove", url.Values{"return": {path}})
 
 	assertRedirect(t, recorder, path)
-	if count := ta.queryInt(`SELECT COUNT(*) FROM product_shoplist`); count != 0 {
+	if count := ta.queryInt(`SELECT COUNT(*) FROM shoplist_items`); count != 0 {
 		t.Fatalf("items = %d", count)
 	}
 }
@@ -579,7 +583,7 @@ func TestQuickCreateProductAddsToList(t *testing.T) {
 	recorder := ta.post("/products", values)
 
 	assertRedirect(t, recorder, "/dashboard")
-	if quantity := ta.queryInt(`SELECT quantity FROM product_shoplist WHERE shoplist_id = ?`, id); quantity != 3 {
+	if quantity := ta.queryInt(`SELECT quantity FROM shoplist_items WHERE shoplist_id = ?`, id); quantity != 3 {
 		t.Fatalf("quantity = %d", quantity)
 	}
 }
@@ -642,7 +646,7 @@ func TestDeleteProductCascades(t *testing.T) {
 	recorder := ta.post("/products/"+itoa(milk)+"/delete", url.Values{"return": {"/products"}})
 
 	assertRedirect(t, recorder, "/products")
-	if count := ta.queryInt(`SELECT COUNT(*) FROM product_shoplist`); count != 0 {
+	if count := ta.queryInt(`SELECT COUNT(*) FROM shoplist_items`); count != 0 {
 		t.Fatalf("items = %d", count)
 	}
 }
