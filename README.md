@@ -81,12 +81,3 @@ volumes:
 ```
 
 Set `TZ` so new lists get the local date. Without DockTail, publish the port instead (`ports: ["127.0.0.1:8080:8080"]`).
-
-To bring in an existing database, migrate it on the host first, then copy it into the volume while the app is stopped:
-
-```sh
-docker compose stop quicklist
-docker run --rm -v quicklist_data:/data -v "$PWD/database.sqlite:/in.sqlite:ro" alpine \
-	sh -c 'install -o 65532 -g 65532 -m 600 /in.sqlite /data/database.sqlite && chown 65532:65532 /data'
-docker compose up -d
-```
