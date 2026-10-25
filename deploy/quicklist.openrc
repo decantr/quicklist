@@ -15,3 +15,8 @@ export QUICKLIST_DB="/var/lib/quicklist/database.sqlite"
 depend() {
 	need net
 }
+
+# The log is opened as command_user, which cannot create files in /var/log.
+start_pre() {
+	checkpath --file --owner "$command_user" --mode 0640 "$output_log"
+}
