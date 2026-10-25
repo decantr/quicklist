@@ -1,5 +1,4 @@
 #!/sbin/openrc-run
-# Expose on the tailnet with: tailscale serve --bg --https=8443 http://127.0.0.1:8080
 
 name="quicklist"
 description="Quick List"
