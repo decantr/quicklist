@@ -56,7 +56,6 @@ func (ta *testApp) post(path string, values url.Values) *httptest.ResponseRecord
 	return recorder
 }
 
-// follow loads the redirect target with the cookies the redirect set, so the flash shows.
 func (ta *testApp) follow(recorder *httptest.ResponseRecorder) *httptest.ResponseRecorder {
 	ta.t.Helper()
 	assertStatus(ta.t, recorder, http.StatusSeeOther)
