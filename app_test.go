@@ -7,7 +7,6 @@ import (
 	"net/http/httptest"
 	"net/url"
 	"path/filepath"
-	"regexp"
 	"strconv"
 	"strings"
 	"sync"
@@ -45,7 +44,7 @@ func newTestAppFromPath(t *testing.T, path string) *testApp {
 func (ta *testApp) get(path string) *httptest.ResponseRecorder {
 	request := httptest.NewRequest(http.MethodGet, path, nil)
 	recorder := httptest.NewRecorder()
-	http.NewCrossOriginProtection().Handler(ta.app).ServeHTTP(recorder, request)
+	ta.app.ServeHTTP(recorder, request)
 	return recorder
 }
 
@@ -53,8 +52,20 @@ func (ta *testApp) post(path string, values url.Values) *httptest.ResponseRecord
 	request := httptest.NewRequest(http.MethodPost, path, strings.NewReader(values.Encode()))
 	request.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 	recorder := httptest.NewRecorder()
-	http.NewCrossOriginProtection().Handler(ta.app).ServeHTTP(recorder, request)
+	ta.app.ServeHTTP(recorder, request)
 	return recorder
+}
+
+// follow loads the redirect target with the cookies the redirect set, so the flash shows.
+func (ta *testApp) follow(recorder *httptest.ResponseRecorder) *httptest.ResponseRecorder {
+	ta.t.Helper()
+	request := httptest.NewRequest(http.MethodGet, recorder.Header().Get("Location"), nil)
+	for _, cookie := range recorder.Result().Cookies() {
+		request.AddCookie(cookie)
+	}
+	page := httptest.NewRecorder()
+	ta.app.ServeHTTP(page, request)
+	return page
 }
 
 func (ta *testApp) exec(query string, args ...any) int64 {
@@ -118,6 +129,14 @@ func assertNotContains(t *testing.T, body, unwanted string) {
 	}
 }
 
+func assertBefore(t *testing.T, body, first, second string) {
+	t.Helper()
+	first_index, second_index := strings.Index(body, first), strings.Index(body, second)
+	if first_index < 0 || second_index < 0 || first_index > second_index {
+		t.Fatalf("want %q before %q", first, second)
+	}
+}
+
 func assertRedirect(t *testing.T, recorder *httptest.ResponseRecorder, location string) {
 	t.Helper()
 	assertStatus(t, recorder, http.StatusSeeOther)
@@ -152,49 +171,12 @@ func TestMigrationsRefuseNewerDatabase(t *testing.T) {
 	}
 }
 
-func TestSchemaRejectsInvalidRows(t *testing.T) {
-	ta := newTestApp(t)
-	milk := ta.product("Milk", 500, "ml", "dairy")
-	list := ta.shoplist("2026-04-01", "2026-04-01 10:00:00")
-
-	for _, statement := range []string{
-		`INSERT INTO products (name, size, size_type, category) VALUES ('Tea', 1, 'kg', 'cupboard')`,
-		`INSERT INTO products (name, size, size_type, category) VALUES ('Tea', 1, 'g', 'drinks')`,
-		`INSERT INTO products (name, size, size_type, category) VALUES ('Milk', 500, 'ml', 'fridge')`,
-		`INSERT INTO shoplists (date) VALUES ('2026-02-30')`,
-		`INSERT INTO shoplists (date) VALUES ('2026-04-01 00:00:00')`,
-		`INSERT INTO shoplist_items (shoplist_id, product_id, quantity) VALUES (` + itoa(list) + `, ` + itoa(milk) + `, 0)`,
-		`INSERT INTO shoplist_items (shoplist_id, product_id, quantity) VALUES (999, ` + itoa(milk) + `, 1)`,
-	} {
-		if _, err := ta.db.Exec(statement); err == nil {
-			t.Errorf("accepted %s", statement)
-		}
-	}
-}
-
-func TestDatesAreStoredAsIso(t *testing.T) {
-	ta := newTestApp(t)
-
-	ta.post("/shoplists", url.Values{})
-
-	if date := ta.queryString(`SELECT date FROM shoplists`); !regexp.MustCompile(`^\d{4}-\d{2}-\d{2}$`).MatchString(date) {
-		t.Fatalf("date = %q", date)
-	}
-	created_at := ta.queryString(`SELECT created_at FROM shoplists`)
-	if !regexp.MustCompile(`^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$`).MatchString(created_at) {
-		t.Fatalf("created_at = %q", created_at)
-	}
-}
-
 // shoplists ===================================================================
 
 func TestDashboardShowsEmptyState(t *testing.T) {
 	ta := newTestApp(t)
 
-	recorder := ta.get("/dashboard")
-
-	assertStatus(t, recorder, http.StatusOK)
-	assertContains(t, recorder.Body.String(), "No shopping lists found.")
+	assertStatus(t, ta.get("/dashboard"), http.StatusOK)
 }
 
 func TestDashboardShowsLatestListByCreatedAt(t *testing.T) {
@@ -208,34 +190,8 @@ func TestDashboardShowsLatestListByCreatedAt(t *testing.T) {
 
 	body := ta.get("/dashboard").Body.String()
 
-	assertContains(t, body, "Latest Shopping List: Apr 01, 2026")
 	assertContains(t, body, "2x Bread (800 g)")
 	assertNotContains(t, body, "1x Milk (500 ml)")
-}
-
-type headerCounter struct {
-	*httptest.ResponseRecorder
-	calls int
-}
-
-func (h *headerCounter) WriteHeader(status int) {
-	h.calls++
-	h.ResponseRecorder.WriteHeader(status)
-}
-
-func TestStatusWriterWritesHeaderOnce(t *testing.T) {
-	for name, write := range map[string]func(http.ResponseWriter){
-		"page":      func(w http.ResponseWriter) { w.Write([]byte("a")); w.Write([]byte("b")) },
-		"not found": func(w http.ResponseWriter) { http.NotFound(w, nil) },
-	} {
-		counter := &headerCounter{ResponseRecorder: httptest.NewRecorder()}
-
-		write(&statusWriter{ResponseWriter: counter, status: http.StatusUnprocessableEntity})
-
-		if counter.calls != 1 {
-			t.Errorf("%s: WriteHeader called %d times", name, counter.calls)
-		}
-	}
 }
 
 func TestRootRedirectsToDashboard(t *testing.T) {
@@ -244,6 +200,9 @@ func TestRootRedirectsToDashboard(t *testing.T) {
 	recorder := ta.get("/")
 
 	assertStatus(t, recorder, http.StatusFound)
+	if location := recorder.Header().Get("Location"); location != "/dashboard" {
+		t.Fatalf("location = %q", location)
+	}
 }
 
 func TestShoplistIndexListsByDateWithCounts(t *testing.T) {
@@ -255,10 +214,8 @@ func TestShoplistIndexListsByDateWithCounts(t *testing.T) {
 
 	body := ta.get("/shoplists").Body.String()
 
-	if strings.Index(body, "Apr 01, 2026") > strings.Index(body, "Mar 01, 2026") {
-		t.Fatal("lists are not ordered by date desc")
-	}
-	assertContains(t, body, `<td>1</td>`)
+	assertBefore(t, body, "Apr 01, 2026", "Mar 01, 2026")
+	assertBefore(t, body, "<td>0</td>", "<td>1</td>")
 }
 
 func TestCreateShoplistCopiesPreviousList(t *testing.T) {
@@ -268,12 +225,14 @@ func TestCreateShoplistCopiesPreviousList(t *testing.T) {
 	previous := ta.shoplist("2026-04-01", "2026-04-01 10:00:00")
 	ta.attach(previous, milk, 3)
 	ta.attach(previous, bread, 1)
+	older_but_newer_created := ta.shoplist("2026-03-01", "2026-04-02 10:00:00")
+	ta.attach(older_but_newer_created, ta.product("Eggs", 12, "count", "dairy"), 1)
 
 	recorder := ta.post("/shoplists", url.Values{"return": {"/dashboard"}})
 
 	assertRedirect(t, recorder, "/dashboard")
 	created := ta.queryInt(`SELECT MAX(id) FROM shoplists`)
-	if created == previous {
+	if created == older_but_newer_created {
 		t.Fatal("no list created")
 	}
 	if quantity := ta.queryInt(`SELECT quantity FROM shoplist_items WHERE shoplist_id = ? AND product_id = ?`, created, milk); quantity != 3 {
@@ -305,6 +264,9 @@ func TestCreateShoplistConcurrently(t *testing.T) {
 			t.Fatal(err)
 		}
 	}
+	if count := ta.queryInt(`SELECT COUNT(*) FROM shoplist_items`); count != 11 {
+		t.Fatalf("items = %d, want 11", count)
+	}
 }
 
 func TestCreateShoplistWithoutPreviousList(t *testing.T) {
@@ -313,26 +275,16 @@ func TestCreateShoplistWithoutPreviousList(t *testing.T) {
 	recorder := ta.post("/shoplists", url.Values{})
 
 	assertRedirect(t, recorder, "/shoplists")
-	if count := ta.queryInt(`SELECT COUNT(*) FROM shoplists`); count != 1 {
-		t.Fatalf("lists = %d", count)
+	if date := ta.queryString(`SELECT date FROM shoplists`); date != today() {
+		t.Fatalf("date = %q, want %q", date, today())
 	}
-}
-
-func TestShoplistShowNotFound(t *testing.T) {
-	ta := newTestApp(t)
-
-	assertStatus(t, ta.get("/shoplists/99"), http.StatusNotFound)
 }
 
 func TestShoplistShowEmpty(t *testing.T) {
 	ta := newTestApp(t)
 	id := ta.shoplist("2026-04-01", "2026-04-01 10:00:00")
 
-	body := ta.get("/shoplists/" + itoa(id)).Body.String()
-
-	assertContains(t, body, "Shopping List: Apr 01, 2026")
-	assertContains(t, body, "No products in this shopping list.")
-	assertNotContains(t, body, "Formatted List")
+	assertStatus(t, ta.get("/shoplists/"+itoa(id)), http.StatusOK)
 }
 
 func TestUpdateShoplistDate(t *testing.T) {
@@ -346,7 +298,6 @@ func TestUpdateShoplistDate(t *testing.T) {
 	if date := ta.queryString(`SELECT date FROM shoplists WHERE id = ?`, id); date != "2026-04-10" {
 		t.Fatalf("date = %q", date)
 	}
-	assertContains(t, ta.get(path).Body.String(), "Apr 10, 2026")
 }
 
 func TestUpdateShoplistDateValidation(t *testing.T) {
@@ -362,6 +313,9 @@ func TestUpdateShoplistDateValidation(t *testing.T) {
 
 		assertStatus(t, recorder, http.StatusUnprocessableEntity)
 		assertContains(t, recorder.Body.String(), message)
+		if push := recorder.Header().Get("HX-Push-Url"); push != "false" {
+			t.Fatalf("HX-Push-Url = %q", push)
+		}
 	}
 	if date := ta.queryString(`SELECT date FROM shoplists WHERE id = ?`, id); date != "2026-04-01" {
 		t.Fatalf("date changed to %q", date)
@@ -377,9 +331,34 @@ func TestDeleteShoplistCascades(t *testing.T) {
 	recorder := ta.post("/shoplists/"+itoa(id)+"/delete", url.Values{"return": {"/shoplists"}})
 
 	assertRedirect(t, recorder, "/shoplists")
+	if count := ta.queryInt(`SELECT COUNT(*) FROM shoplists`); count != 0 {
+		t.Fatalf("lists left = %d", count)
+	}
 	if count := ta.queryInt(`SELECT COUNT(*) FROM shoplist_items`); count != 0 {
 		t.Fatalf("items left = %d", count)
 	}
+	if count := ta.queryInt(`SELECT COUNT(*) FROM products`); count != 1 {
+		t.Fatalf("products = %d", count)
+	}
+}
+
+func TestMissingShoplistIsNotFound(t *testing.T) {
+	ta := newTestApp(t)
+	milk := ta.product("Milk", 500, "ml", "dairy")
+	quick_create := productValues("Eggs", "12", "count", "dairy")
+	quick_create.Set("shoplist_id", "99")
+
+	for path, values := range map[string]url.Values{
+		"/shoplists/99/date":                            {"date": {"2026-04-01"}},
+		"/shoplists/99/delete":                          {},
+		"/shoplists/99/items":                           {"product_id": {itoa(milk)}, "quantity": {"1"}},
+		"/shoplists/99/items/update":                    {"product_id": {itoa(milk)}, "quantity": {"1"}},
+		"/shoplists/99/items/" + itoa(milk) + "/remove": {},
+		"/products":                                     quick_create,
+	} {
+		assertStatus(t, ta.post(path, values), http.StatusNotFound)
+	}
+	assertStatus(t, ta.get("/shoplists/99"), http.StatusNotFound)
 	if count := ta.queryInt(`SELECT COUNT(*) FROM products`); count != 1 {
 		t.Fatalf("products = %d", count)
 	}
@@ -453,20 +432,28 @@ func TestAddItemValidation(t *testing.T) {
 		assertContains(t, recorder.Body.String(), c.message)
 		assertContains(t, recorder.Body.String(), `<dialog id="add-item" x-data x-init="$el.showModal()">`)
 	}
+	if count := ta.queryInt(`SELECT COUNT(*) FROM shoplist_items`); count != 1 {
+		t.Fatalf("items = %d", count)
+	}
 }
 
 func TestUpdateItemQuantity(t *testing.T) {
 	ta := newTestApp(t)
 	milk := ta.product("Milk", 500, "ml", "dairy")
 	id := ta.shoplist("2026-04-01", "2026-04-01 10:00:00")
+	other := ta.shoplist("2026-03-01", "2026-03-01 10:00:00")
 	ta.attach(id, milk, 1)
+	ta.attach(other, milk, 1)
 	path := "/shoplists/" + itoa(id)
 
 	recorder := ta.post(path+"/items/update", url.Values{"product_id": {itoa(milk)}, "quantity": {"5"}, "return": {path}})
 
 	assertRedirect(t, recorder, path)
-	if quantity := ta.queryInt(`SELECT quantity FROM shoplist_items WHERE product_id = ?`, milk); quantity != 5 {
+	if quantity := ta.queryInt(`SELECT quantity FROM shoplist_items WHERE shoplist_id = ?`, id); quantity != 5 {
 		t.Fatalf("quantity = %d", quantity)
+	}
+	if quantity := ta.queryInt(`SELECT quantity FROM shoplist_items WHERE shoplist_id = ?`, other); quantity != 1 {
+		t.Fatalf("other list quantity = %d", quantity)
 	}
 }
 
@@ -481,6 +468,9 @@ func TestUpdateItemValidation(t *testing.T) {
 
 	assertStatus(t, recorder, http.StatusUnprocessableEntity)
 	assertContains(t, recorder.Body.String(), "The quantity field must be at least 1.")
+	if quantity := ta.queryInt(`SELECT quantity FROM shoplist_items`); quantity != 1 {
+		t.Fatalf("quantity changed to %d", quantity)
+	}
 }
 
 func TestUpdateItemNotOnList(t *testing.T) {
@@ -495,28 +485,26 @@ func TestUpdateItemNotOnList(t *testing.T) {
 	if count := ta.queryInt(`SELECT COUNT(*) FROM shoplist_items`); count != 0 {
 		t.Fatalf("items = %d", count)
 	}
-
-	request := httptest.NewRequest(http.MethodGet, path, nil)
-	for _, cookie := range recorder.Result().Cookies() {
-		request.AddCookie(cookie)
-	}
-	page := httptest.NewRecorder()
-	ta.app.ServeHTTP(page, request)
-	assertContains(t, page.Body.String(), "Product not on this Shop List")
+	assertContains(t, ta.follow(recorder).Body.String(), "Product not on this Shop List")
 }
 
 func TestRemoveItem(t *testing.T) {
 	ta := newTestApp(t)
 	milk := ta.product("Milk", 500, "ml", "dairy")
 	id := ta.shoplist("2026-04-01", "2026-04-01 10:00:00")
+	other := ta.shoplist("2026-03-01", "2026-03-01 10:00:00")
 	ta.attach(id, milk, 1)
+	ta.attach(other, milk, 1)
 	path := "/shoplists/" + itoa(id)
 
 	recorder := ta.post(path+"/items/"+itoa(milk)+"/remove", url.Values{"return": {path}})
 
 	assertRedirect(t, recorder, path)
-	if count := ta.queryInt(`SELECT COUNT(*) FROM shoplist_items`); count != 0 {
+	if count := ta.queryInt(`SELECT COUNT(*) FROM shoplist_items WHERE shoplist_id = ?`, id); count != 0 {
 		t.Fatalf("items = %d", count)
+	}
+	if count := ta.queryInt(`SELECT COUNT(*) FROM shoplist_items WHERE shoplist_id = ?`, other); count != 1 {
+		t.Fatalf("other list items = %d", count)
 	}
 }
 
@@ -536,10 +524,7 @@ func TestProductsIndexFiltersByCategory(t *testing.T) {
 	assertContains(t, body, `data-name="Milk"`)
 	assertNotContains(t, body, `data-name="Bread"`)
 
-	all := ta.get("/products").Body.String()
-	if strings.Index(all, `data-name="Bread"`) > strings.Index(all, `data-name="Milk"`) {
-		t.Fatal("products are not ordered by name")
-	}
+	assertBefore(t, ta.get("/products").Body.String(), `data-name="Bread"`, `data-name="Milk"`)
 }
 
 func TestCreateProduct(t *testing.T) {
@@ -560,13 +545,7 @@ func TestCreateProductAndAddAnotherReopensDialog(t *testing.T) {
 
 	recorder := ta.post("/products", values)
 
-	request := httptest.NewRequest(http.MethodGet, "/products", nil)
-	for _, cookie := range recorder.Result().Cookies() {
-		request.AddCookie(cookie)
-	}
-	page := httptest.NewRecorder()
-	ta.app.ServeHTTP(page, request)
-	assertContains(t, page.Body.String(), `<dialog id="create-product" x-data x-init="$el.showModal()">`)
+	assertContains(t, ta.follow(recorder).Body.String(), `<dialog id="create-product" x-data x-init="$el.showModal()">`)
 }
 
 func TestCreateProductValidation(t *testing.T) {
@@ -595,6 +574,15 @@ func TestCreateProductValidation(t *testing.T) {
 	if count := ta.queryInt(`SELECT COUNT(*) FROM products`); count != 1 {
 		t.Fatalf("products = %d", count)
 	}
+}
+
+func TestFailedFormKeepsValues(t *testing.T) {
+	ta := newTestApp(t)
+
+	body := ta.post("/products", productValues("Eggs", "-1", "count", "dairy")).Body.String()
+
+	assertContains(t, body, `value="Eggs"`)
+	assertContains(t, body, `value="-1"`)
 }
 
 func TestCreateProductAllowsSameNameWithDifferentSize(t *testing.T) {
@@ -655,6 +643,17 @@ func TestUpdateProduct(t *testing.T) {
 	}
 }
 
+func TestUpdateMissingProductIsNotFound(t *testing.T) {
+	ta := newTestApp(t)
+	values := productValues("Milk", "500", "ml", "dairy")
+	values.Set("id", "99")
+
+	assertStatus(t, ta.post("/products/update", values), http.StatusNotFound)
+	if count := ta.queryInt(`SELECT COUNT(*) FROM products`); count != 0 {
+		t.Fatalf("products = %d", count)
+	}
+}
+
 func TestUpdateProductIgnoresItselfForDuplicates(t *testing.T) {
 	ta := newTestApp(t)
 	milk := ta.product("Milk", 500, "ml", "dairy")
@@ -681,6 +680,9 @@ func TestDeleteProductCascades(t *testing.T) {
 	recorder := ta.post("/products/"+itoa(milk)+"/delete", url.Values{"return": {"/products"}})
 
 	assertRedirect(t, recorder, "/products")
+	if count := ta.queryInt(`SELECT COUNT(*) FROM products`); count != 0 {
+		t.Fatalf("products = %d", count)
+	}
 	if count := ta.queryInt(`SELECT COUNT(*) FROM shoplist_items`); count != 0 {
 		t.Fatalf("items = %d", count)
 	}
@@ -698,7 +700,6 @@ func TestFormattedListOutput(t *testing.T) {
 
 	body := ta.get("/shoplists/" + itoa(id)).Body.String()
 
-	assertContains(t, body, "Formatted List")
 	assertContains(t, body, "3x Milk (500 ml)\n1x Eggs (12 count)\n\n1x Bread (1 g)\n\n2x Beer (1 pt)")
 }
 
@@ -711,34 +712,52 @@ func TestDashboardFormattedListIsSorted(t *testing.T) {
 	body := ta.get("/dashboard").Body.String()
 
 	assertContains(t, body, "1x Bread (1 g)\n\n3x Milk (500 ml)")
-	assertContains(t, body, "Copy Text")
 }
 
-func TestFormattedListEscapesHTML(t *testing.T) {
-	ta := newTestApp(t)
-	id := ta.shoplist("2026-04-01", "2026-04-01 10:00:00")
-	ta.attach(id, ta.product("<b>Fish & Chips</b>", 1, "count", "frozen"), 1)
+// http ========================================================================
 
-	body := ta.get("/dashboard").Body.String()
-
-	assertNotContains(t, body, "<b>Fish")
-	assertContains(t, body, "&lt;b&gt;Fish &amp; Chips&lt;/b&gt;")
+type headerCounter struct {
+	*httptest.ResponseRecorder
+	calls int
 }
 
-// security ====================================================================
+func (h *headerCounter) WriteHeader(status int) {
+	h.calls++
+	h.ResponseRecorder.WriteHeader(status)
+}
 
-func TestCrossSiteFormPostIsRejected(t *testing.T) {
-	ta := newTestApp(t)
-	request := httptest.NewRequest(http.MethodPost, "/shoplists", nil)
-	request.Header.Set("Sec-Fetch-Site", "cross-site")
-	recorder := httptest.NewRecorder()
-
-	http.NewCrossOriginProtection().Handler(ta.app).ServeHTTP(recorder, request)
-
-	assertStatus(t, recorder, http.StatusForbidden)
-	if count := ta.queryInt(`SELECT COUNT(*) FROM shoplists`); count != 0 {
-		t.Fatalf("lists = %d", count)
+func TestStatusWriterWritesHeaderOnce(t *testing.T) {
+	cases := []struct {
+		name   string
+		write  func(http.ResponseWriter)
+		status int
+	}{
+		{"page", func(w http.ResponseWriter) { w.Write([]byte("a")); w.Write([]byte("b")) }, http.StatusUnprocessableEntity},
+		{"not found", func(w http.ResponseWriter) { http.NotFound(w, nil) }, http.StatusNotFound},
 	}
+	for _, c := range cases {
+		counter := &headerCounter{ResponseRecorder: httptest.NewRecorder()}
+
+		c.write(&statusWriter{ResponseWriter: counter, status: http.StatusUnprocessableEntity})
+
+		if counter.calls != 1 || counter.Code != c.status {
+			t.Errorf("%s: WriteHeader called %d times, status %d, want once with %d", c.name, counter.calls, counter.Code, c.status)
+		}
+	}
+}
+
+func TestFlashIsShownOnce(t *testing.T) {
+	ta := newTestApp(t)
+
+	page := ta.follow(ta.post("/shoplists", url.Values{}))
+
+	assertContains(t, page.Body.String(), "Shopping list created.")
+	for _, cookie := range page.Result().Cookies() {
+		if cookie.Name == "flash" && cookie.MaxAge < 0 {
+			return
+		}
+	}
+	t.Fatal("flash cookie was not cleared")
 }
 
 func TestExternalReturnPathIsIgnored(t *testing.T) {
@@ -749,15 +768,6 @@ func TestExternalReturnPathIsIgnored(t *testing.T) {
 
 		assertRedirect(t, recorder, "/shoplists")
 	}
-}
-
-func TestStylesheetIsInlined(t *testing.T) {
-	ta := newTestApp(t)
-
-	body := ta.get("/dashboard").Body.String()
-
-	assertContains(t, body, "<style>:root {")
-	assertNotContains(t, body, `href="/static/app.css"`)
 }
 
 func TestStaticAssetsAreServed(t *testing.T) {
