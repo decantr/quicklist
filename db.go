@@ -10,7 +10,8 @@ import (
 )
 
 func openDatabase(path string) (*sql.DB, error) {
-	dsn := "file:" + url.PathEscape(path) + "?_pragma=foreign_keys(1)&_pragma=busy_timeout(5000)"
+	// Immediate transactions take the write lock up front; upgrading a read lock fails with SQLITE_BUSY despite busy_timeout.
+	dsn := "file:" + url.PathEscape(path) + "?_pragma=foreign_keys(1)&_pragma=busy_timeout(5000)&_txlock=immediate"
 	db, err := sql.Open("sqlite", dsn)
 	if err != nil {
 		return nil, err

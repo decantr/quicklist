@@ -10,6 +10,7 @@ import (
 	"regexp"
 	"strconv"
 	"strings"
+	"sync"
 	"testing"
 )
 
@@ -255,6 +256,29 @@ func TestCreateShoplistCopiesPreviousList(t *testing.T) {
 	}
 	if count := ta.queryInt(`SELECT COUNT(*) FROM shoplist_items WHERE shoplist_id = ?`, created); count != 2 {
 		t.Fatalf("copied items = %d", count)
+	}
+}
+
+func TestCreateShoplistConcurrently(t *testing.T) {
+	ta := newTestApp(t)
+	milk := ta.product("Milk", 500, "ml", "dairy")
+	ta.attach(ta.shoplist("2026-04-01", "2026-04-01 10:00:00"), milk, 1)
+
+	var group sync.WaitGroup
+	errors := make(chan error, 10)
+	for range 10 {
+		group.Go(func() {
+			_, err := ta.store.createShoplist("2026-04-02")
+			errors <- err
+		})
+	}
+	group.Wait()
+	close(errors)
+
+	for err := range errors {
+		if err != nil {
+			t.Fatal(err)
+		}
 	}
 }
 
