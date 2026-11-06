@@ -24,7 +24,7 @@ Single-user shopping list app. One static Go binary, served only over Tailscale,
 
 - `mise run run`: run against `database.sqlite`
 - `mise run test`: vet and test
-- `mise run vuln`: check for known vulnerabilities (CI runs it on each push and weekly)
+- `mise run vuln`: check for known vulnerabilities (CI runs it on each push)
 - `mise run vuln-release`: check the latest published binary and image (CI runs it weekly)
 - `mise run build` / `mise run build-linux`: build binaries into `bin/`
 - Release: push a `v*` tag; `.github/workflows/release.yml` publishes the binaries and the ghcr.io image

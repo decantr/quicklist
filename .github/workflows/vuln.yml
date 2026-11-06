@@ -1,0 +1,23 @@
+name: vuln
+
+on:
+  schedule:
+    # weekly, so new Go security releases are noticed without a push
+    - cron: "0 6 * * 1"
+  workflow_dispatch:
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+
+      - name: Setup mise
+        uses: jdx/mise-action@v3
+        with:
+          install_args: go
+
+      - name: Check the latest release for vulnerabilities
+        run: mise run vuln-release
