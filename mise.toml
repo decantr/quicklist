@@ -3,6 +3,7 @@ go = "1.26"
 
 [env]
 CGO_ENABLED = "0"
+GOVULNCHECK = "golang.org/x/vuln/cmd/govulncheck@v1.9.0"
 
 [tasks.run]
 description = "Run the app against the local database"
@@ -14,7 +15,11 @@ run = ["go vet ./...", "go test ./..."]
 
 [tasks.vuln]
 description = "Check for known vulnerabilities"
-run = "go run golang.org/x/vuln/cmd/govulncheck@v1.9.0 ./..."
+run = "go run $GOVULNCHECK ./..."
+
+[tasks.vuln-release]
+description = "Check the latest release for known vulnerabilities"
+run = "_scripts/vuln-release.sh"
 
 [tasks.fmt]
 description = "Format the Go code"
