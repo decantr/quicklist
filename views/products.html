@@ -28,6 +28,7 @@
 			<button type="submit" class="primary">Create</button>
 		</div>
 	</form>
+	{{template "dialog-close"}}
 </dialog>
 
 <section class="card" x-data="{product: {id: $el.dataset.id, name: $el.dataset.name, size: $el.dataset.size, size_type: $el.dataset.size_type, category: $el.dataset.category}}"
@@ -74,6 +75,7 @@
 			{{template "product-fields" (fields . "edit-product" true)}}
 			{{template "dialog-buttons" "Update"}}
 		</form>
+		{{template "dialog-close"}}
 	</dialog>
 </section>
 {{end}}

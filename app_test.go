@@ -413,6 +413,19 @@ func TestPagesShowVersion(t *testing.T) {
 	assertContains(t, ta.get("/dashboard").Body.String(), `<span class="version muted">dev</span>`)
 }
 
+func TestDialogsHaveCloseButton(t *testing.T) {
+	ta := newTestApp(t)
+	ta.product("Milk", 500, "ml", "dairy")
+	id := ta.shoplist("2026-04-01", "2026-04-01 10:00:00")
+
+	for _, page := range []string{"/dashboard", "/shoplists/" + itoa(id), "/products"} {
+		body := ta.get(page).Body.String()
+		if dialogs, closes := strings.Count(body, "</dialog>"), strings.Count(body, `class="ghost icon dialog-close"`); dialogs == 0 || dialogs != closes {
+			t.Fatalf("%s: dialogs = %d, close buttons = %d", page, dialogs, closes)
+		}
+	}
+}
+
 func TestAddItemOptionsExcludeProductsOnList(t *testing.T) {
 	ta := newTestApp(t)
 	milk := ta.product("Milk", 500, "ml", "dairy")

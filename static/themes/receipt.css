@@ -539,6 +539,16 @@ dialog::backdrop {
 	backdrop-filter: blur(2px);
 }
 
+.dialog-close {
+	position: absolute;
+	top: 0.75rem;
+	right: 0.75rem;
+}
+
+dialog h2 {
+	padding-right: 2.5rem;
+}
+
 /* toasts: little tickets */
 
 .toasts {

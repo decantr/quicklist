@@ -397,6 +397,16 @@ dialog::backdrop {
 	background: rgb(0 0 0 / 0.5);
 }
 
+.dialog-close {
+	position: absolute;
+	top: 0.75rem;
+	right: 0.75rem;
+}
+
+dialog h2 {
+	padding-right: 2.5rem;
+}
+
 .toasts {
 	position: fixed;
 	right: 1rem;
