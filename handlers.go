@@ -57,6 +57,7 @@ type PageData struct {
 	SizeTypes  []string
 	Theme      string
 	Themes     []string
+	Version    string
 }
 
 func (p PageData) Open(dialog string) bool {
@@ -692,6 +693,7 @@ func (a *App) pageData(w http.ResponseWriter, r *http.Request, title string) Pag
 		SizeTypes:  size_types,
 		Theme:      a.theme(r),
 		Themes:     a.themeNames(),
+		Version:    version,
 	}
 	if form, ok := r.Context().Value(formStateKey{}).(*FormState); ok {
 		data.Form = form

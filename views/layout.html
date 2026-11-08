@@ -29,6 +29,7 @@
 	</main>
 
 	<footer class="footer">
+		<span class="version muted">{{.Version}}</span>
 		<form method="post" action="/theme" hx-boost="false">
 			<input type="hidden" name="return" value="{{.Path}}">
 			<label>Theme

@@ -16,6 +16,9 @@ import (
 	_ "time/tzdata"
 )
 
+// Set at build time with -ldflags "-X main.version=...".
+var version = "dev"
+
 func main() {
 	addr := flag.String("addr", envOr("QUICKLIST_ADDR", "127.0.0.1:8080"), "listen address")
 	db_path := flag.String("db", envOr("QUICKLIST_DB", "database.sqlite"), "SQLite database file")
@@ -53,7 +56,7 @@ func main() {
 		ReadHeaderTimeout: 10 * time.Second,
 	}
 
-	log.Printf("listening on http://%s (db: %s)", *addr, *db_path)
+	log.Printf("quicklist %s listening on http://%s (db: %s)", version, *addr, *db_path)
 	if err := serve(ctx, server, listener); err != nil {
 		log.Fatal(err)
 	}

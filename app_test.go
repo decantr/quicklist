@@ -407,6 +407,12 @@ func TestAddItemAndAddAnotherReopensDialog(t *testing.T) {
 	assertContains(t, body, `<template id="pending-item">`)
 }
 
+func TestPagesShowVersion(t *testing.T) {
+	ta := newTestApp(t)
+
+	assertContains(t, ta.get("/dashboard").Body.String(), `<span class="version muted">dev</span>`)
+}
+
 func TestAddItemOptionsExcludeProductsOnList(t *testing.T) {
 	ta := newTestApp(t)
 	milk := ta.product("Milk", 500, "ml", "dairy")

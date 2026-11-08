@@ -27,12 +27,12 @@ run = "gofmt -w ."
 
 [tasks.build]
 description = "Build for this machine"
-run = "go build -trimpath -ldflags '-s -w' -o bin/quicklist ."
+run = 'go build -trimpath -ldflags "-s -w -X main.version=${VERSION:-$(git describe --tags --always --dirty)}" -o bin/quicklist .'
 
 [tasks.build-linux]
 description = "Build static Linux binaries for amd64 and arm64"
 run = [
-	"GOOS=linux GOARCH=amd64 go build -trimpath -ldflags '-s -w' -o bin/quicklist-linux-amd64 .",
-	"GOOS=linux GOARCH=arm64 go build -trimpath -ldflags '-s -w' -o bin/quicklist-linux-arm64 .",
+	'GOOS=linux GOARCH=amd64 go build -trimpath -ldflags "-s -w -X main.version=${VERSION:-$(git describe --tags --always --dirty)}" -o bin/quicklist-linux-amd64 .',
+	'GOOS=linux GOARCH=arm64 go build -trimpath -ldflags "-s -w -X main.version=${VERSION:-$(git describe --tags --always --dirty)}" -o bin/quicklist-linux-arm64 .',
 ]
 
