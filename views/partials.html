@@ -29,6 +29,15 @@
 			{{end}}
 		</tbody>
 	</table>
+	<template id="pending-item">
+		<tr class="pending" style="opacity: 0.5">
+			<td class="narrow" data-field="quantity"></td>
+			<td class="name"><span class="strong" data-field="name"></span><div class="meta" data-field="meta"></div></td>
+			<td class="muted wide" data-field="category"></td>
+			<td class="wide"><span data-field="size"></span> <span class="muted" data-field="size_type"></span></td>
+			<td class="narrow actions"></td>
+		</tr>
+	</template>
 
 	<dialog x-ref="edit" {{if $.Open "edit-item"}}x-init="$el.showModal()"{{end}}>
 		<form method="post" action="/shoplists/{{$.Shoplist.ID}}/items/update" class="stack">
@@ -49,7 +58,7 @@
 
 {{define "add-item-dialog"}}
 <dialog id="add-item" {{if $.Open "add-item"}}x-data x-init="$el.showModal()"{{end}}>
-	<form method="post" action="/shoplists/{{$.Shoplist.ID}}/items" class="stack">
+	<form method="post" action="/shoplists/{{$.Shoplist.ID}}/items" class="stack" data-optimistic-item>
 		<h2>Add product</h2>
 		<input type="hidden" name="return" value="{{$.Path}}">
 		<input type="hidden" name="dialog" value="add-item">
@@ -58,7 +67,8 @@
 				<option value="">Select a product</option>
 				{{$selected := $.Value "add-item" "product_id" ""}}
 				{{range $.Options}}
-				<option value="{{.ID}}" {{if eq (print .ID) $selected}}selected{{end}}>{{.Name}} ({{.Size}} {{.SizeType}})</option>
+				<option value="{{.ID}}" {{if eq (print .ID) $selected}}selected{{end}}
+					data-name="{{.Name}}" data-category="{{categoryLabel .Category}}" data-size="{{.Size}}" data-size_type="{{.SizeType}}">{{.Name}} ({{.Size}} {{.SizeType}})</option>
 				{{end}}
 			</select>
 		</label>
@@ -70,7 +80,11 @@
 			<button type="button" class="link" onclick="this.closest('dialog').close(); document.getElementById('quick-create').showModal()">Create a new product</button>
 		</p>
 		{{end}}
-		{{template "dialog-buttons" "Add"}}
+		<div class="buttons">
+			<button type="button" class="ghost" onclick="this.closest('dialog').close()">Cancel</button>
+			<button type="submit" name="another" value="1">Add &amp; Add Another</button>
+			<button type="submit" class="primary">Add</button>
+		</div>
 	</form>
 </dialog>
 {{end}}

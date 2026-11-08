@@ -393,6 +393,20 @@ func TestAddItem(t *testing.T) {
 	}
 }
 
+func TestAddItemAndAddAnotherReopensDialog(t *testing.T) {
+	ta := newTestApp(t)
+	milk := ta.product("Milk", 500, "ml", "dairy")
+	ta.product("Bread", 800, "g", "bakery")
+	id := ta.shoplist("2026-04-01", "2026-04-01 10:00:00")
+
+	recorder := ta.post("/shoplists/"+itoa(id)+"/items", url.Values{"product_id": {itoa(milk)}, "quantity": {"1"}, "dialog": {"add-item"}, "another": {"1"}})
+
+	body := ta.follow(recorder).Body.String()
+	assertContains(t, body, `<dialog id="add-item" x-data x-init="$el.showModal()">`)
+	assertContains(t, body, `data-name="Bread" data-category="Bakery" data-size="800" data-size_type="g"`)
+	assertContains(t, body, `<template id="pending-item">`)
+}
+
 func TestAddItemOptionsExcludeProductsOnList(t *testing.T) {
 	ta := newTestApp(t)
 	milk := ta.product("Milk", 500, "ml", "dairy")

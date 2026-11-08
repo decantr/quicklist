@@ -378,7 +378,11 @@ func (a *App) addItem(w http.ResponseWriter, r *http.Request) {
 		serverError(w, err)
 		return
 	}
-	redirectBack(w, r, fmt.Sprintf("/shoplists/%d", shoplist.ID), Flash{Message: "Product added to list."})
+	flash := Flash{Message: "Product added to list."}
+	if r.FormValue("another") != "" {
+		flash.Open = r.FormValue("dialog")
+	}
+	redirectBack(w, r, fmt.Sprintf("/shoplists/%d", shoplist.ID), flash)
 }
 
 func (a *App) updateItem(w http.ResponseWriter, r *http.Request) {
